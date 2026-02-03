@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8995 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8995.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8995-container">
+  <div class="form-8995-top-header">
+    <div class="form-8995-top-left">
+      <div class="form-8995-form-label">Form 8995</div>
+      <div class="form-8995-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8995-top-center">
+      <div class="form-8995-main-title">Qualified Business Income Deduction</div>
+      <div class="form-8995-subtitle">Simplified Computation</div>
+      <div class="form-8995-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+      <div class="form-8995-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8995" target="_blank">www.irs.gov/Form8995</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-8995-top-right">
+      <div class="form-8995-omb-line">OMB No. 1545-0123</div>
+      <div class="form-8995-year-large">{{ year }}</div>
+      <div class="form-8995-attachment">Attachment<br>Sequence No. <strong>55A</strong></div>
+    </div>
+  </div>
+
+  <div class="form-8995-name-row">
+    <div class="form-8995-name-box" style="flex: 3;">
+      <div class="form-8995-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8995-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8995-ssn-box">
+      <div class="form-8995-name-label">Your social security number</div>
+      <input type="text" class="form-8995-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8995-note">
+    <strong>Note.</strong> You can claim the qualified business income deduction only if you have qualified business income from a qualified trade or business, real estate investment trust dividends, publicly traded partnership income, or a domestic production activities deduction passed through from an agricultural or horticultural cooperative.
+  </div>
+
+  <div class="form-8995-section-header">
+    Trade, Business, or Aggregation Information
+  </div>
+
+  <div class="form-8995-grid-header">
+    <div class="form-8995-grid-header-cell form-8995-grid-header-num"></div>
+    <div class="form-8995-grid-header-cell form-8995-grid-header-col-a">(a) Trade, business, or aggregation name</div>
+    <div class="form-8995-grid-header-cell form-8995-grid-header-col-b">(b) Taxpayer identification number</div>
+    <div class="form-8995-grid-header-cell form-8995-grid-header-col-c">(c) Qualified business income or (loss)</div>
+  </div>
+
+  {% for i in "i ii iii iv v"|split %}
+  <div class="form-8995-grid-row">
+    <div class="form-8995-grid-cell form-8995-grid-cell-num">1({{ i }})</div>
+    <div class="form-8995-grid-cell" style="width: 200px;">
+      <input type="text" name="{{ fields|get_item:'Lines 1(i) - 1(v), Column (a)'|field_id }}" value="{{ fields|get_item:'Lines 1(i) - 1(v), Column (a)'|field_value|default:'' }}" placeholder="Business name">
+    </div>
+    <div class="form-8995-grid-cell" style="width: 120px;">
+      <input type="text" name="{{ fields|get_item:'Lines 1(i) - 1(v), Column (b)'|field_id }}" value="{{ fields|get_item:'Lines 1(i) - 1(v), Column (b)'|field_value|default:'' }}" placeholder="EIN/SSN">
+    </div>
+    <div class="form-8995-grid-cell" style="width: 140px;">
+      <input type="text" class="form-8995-line-input" style="width: 100%;" name="{{ fields|get_item:'Lines 1(i) - 1(v), Column (c)'|field_id }}" value="{{ fields|get_item:'Lines 1(i) - 1(v), Column (c)'|field_value|default:'' }}">
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="form-8995-section-header">
+    Qualified Business Income Deduction
+  </div>
+
+  <div class="form-8995-section">
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">2</span>
+      <span class="form-8995-line-text">Total qualified business income or (loss). Combine lines 1(i) through 1(v), column (c)</span>
+      <span class="form-8995-line-box">2</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">3</span>
+      <span class="form-8995-line-text">Qualified business net (loss) carryforward from the prior year</span>
+      <span class="form-8995-line-box">3</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">4</span>
+      <span class="form-8995-line-text">Total qualified business income. Combine lines 2 and 3. If zero or less, enter -0-</span>
+      <span class="form-8995-line-box">4</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" {% field_readonly fields|get_item:'4' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">5</span>
+      <span class="form-8995-line-text">Qualified business income component. Multiply line 4 by 20% (0.20)</span>
+      <span class="form-8995-line-box">5</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">6</span>
+      <span class="form-8995-line-text">Qualified REIT dividends and publicly traded partnership (PTP) income or (loss)</span>
+      <span class="form-8995-line-box">6</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">7</span>
+      <span class="form-8995-line-text">Qualified REIT dividends and PTP (loss) carryforward from the prior year</span>
+      <span class="form-8995-line-box">7</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">8</span>
+      <span class="form-8995-line-text">Total qualified REIT dividends and PTP income. Combine lines 6 and 7. If zero or less, enter -0-</span>
+      <span class="form-8995-line-box">8</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">9</span>
+      <span class="form-8995-line-text">REIT and PTP component. Multiply line 8 by 20% (0.20)</span>
+      <span class="form-8995-line-box">9</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">10</span>
+      <span class="form-8995-line-text">Qualified business income deduction before the income limitation. Add lines 5 and 9</span>
+      <span class="form-8995-line-box">10</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">11</span>
+      <span class="form-8995-line-text">Taxable income before qualified business income deduction (see instructions)</span>
+      <span class="form-8995-line-box">11</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">12</span>
+      <span class="form-8995-line-text">Net capital gain (see instructions)</span>
+      <span class="form-8995-line-box">12</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">13</span>
+      <span class="form-8995-line-text">Subtract line 12 from line 11. If zero or less, enter -0-</span>
+      <span class="form-8995-line-box">13</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" {% field_readonly fields|get_item:'13' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">14</span>
+      <span class="form-8995-line-text">Income limitation. Multiply line 13 by 20% (0.20)</span>
+      <span class="form-8995-line-box">14</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="form-8995-form-line form-8995-result-line">
+      <span class="form-8995-line-num">15</span>
+      <span class="form-8995-line-text"><strong>Qualified business income deduction.</strong> Enter the smaller of line 10 or line 14. Also enter this amount on the applicable line of your return (see instructions)</span>
+      <span class="form-8995-line-box">15</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+  </div>
+
+  <div class="form-8995-subheader">
+    Loss Carryforward
+  </div>
+
+  <div class="form-8995-section">
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">16</span>
+      <span class="form-8995-line-text">Total qualified business (loss) carryforward. Combine lines 2 and 3. If the result is less than zero, enter as a positive amount; otherwise, enter -0-</span>
+      <span class="form-8995-line-box">16</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+
+    <div class="form-8995-form-line">
+      <span class="form-8995-line-num">17</span>
+      <span class="form-8995-line-text">Total qualified REIT dividends and PTP (loss) carryforward. Combine lines 6 and 7. If the result is less than zero, enter as a positive amount; otherwise, enter -0-</span>
+      <span class="form-8995-line-box">17</span>
+      <input type="text" class="form-8995-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}" {% field_readonly fields|get_item:'17' %}>
+    </div>
+  </div>
+
+  <div class="form-8995-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 37806C
+    </div>
+    <div>
+      <strong>Form 8995 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

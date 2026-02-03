@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Earned Income Worksheet - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_earned_income_worksheet.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-eiw-container">
+  <div class="form-eiw-top-header">
+    <div class="form-eiw-top-left">
+      <div class="form-eiw-form-label">Earned Income</div>
+      <div class="form-eiw-form-subtitle">Worksheet</div>
+      <div class="form-eiw-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-eiw-top-center">
+      <div class="form-eiw-main-title">Earned Income Worksheet</div>
+      <div class="form-eiw-subtitle">Use this worksheet to figure your earned income for Earned Income Credit (EIC)</div>
+      <div class="form-eiw-attach-note"><strong>▶ See EIC instructions for more information</strong></div>
+    </div>
+    <div class="form-eiw-top-right">
+      <div class="form-eiw-omb-line">OMB No. 1545-0074</div>
+      <div class="form-eiw-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-eiw-name-row">
+    <div class="form-eiw-name-box" style="flex: 3;">
+      <div class="form-eiw-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-eiw-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-eiw-ssn-box">
+      <div class="form-eiw-name-label">Your social security number</div>
+      <input type="text" class="form-eiw-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-eiw-step-header">
+    Part 1 - Wages, Salaries, Tips, and Other Employee Compensation
+  </div>
+
+  <div class="form-eiw-section">
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">1a</span>
+      <span class="form-eiw-line-text">Enter the amount from line 1z of Form 1040, 1040-SR, or 1040-NR</span>
+      <span class="form-eiw-line-box">1a</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}" {% field_readonly fields|get_item:'1a' %}>
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">1b</span>
+      <span class="form-eiw-line-text">Nontaxable combat pay (from line 1i or Form W-2, box 12 with code Q)</span>
+      <span class="form-eiw-line-box">1b</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}" {% field_readonly fields|get_item:'1b' %}>
+    </div>
+  </div>
+
+  <div class="form-eiw-step-header">
+    Part 2 - Self-Employment Income
+  </div>
+
+  <div class="form-eiw-section">
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">2a</span>
+      <span class="form-eiw-line-text">Statutory employee income from Schedule C, line 1 (if box on line 1 of Schedule C is checked)</span>
+      <span class="form-eiw-line-box">2a</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">2b</span>
+      <span class="form-eiw-line-text">Net profit or (loss) from Schedule C, line 31, and Schedule K-1 (Form 1065), box 14, code A</span>
+      <span class="form-eiw-line-box">2b</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'2b'|field_id }}" value="{{ fields|get_item:'2b'|field_value|default:'' }}" {% field_readonly fields|get_item:'2b' %}>
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">2c</span>
+      <span class="form-eiw-line-text">Net farm profit or (loss) from Schedule F, line 34, and Schedule K-1 (Form 1065), box 14, code A (farm)</span>
+      <span class="form-eiw-line-box">2c</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'2c'|field_id }}" value="{{ fields|get_item:'2c'|field_value|default:'' }}" {% field_readonly fields|get_item:'2c' %}>
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">2d</span>
+      <span class="form-eiw-line-text">Farm optional method from Schedule SE (see instructions)</span>
+      <span class="form-eiw-line-box">2d</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'2d'|field_id }}" value="{{ fields|get_item:'2d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">2e</span>
+      <span class="form-eiw-line-text">Adjusted farm profit/loss. If line 2d is blank, enter line 2c. Otherwise, enter the smaller of line 2c or line 2d</span>
+      <span class="form-eiw-line-box">2e</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'2e'|field_id }}" value="{{ fields|get_item:'2e'|field_value|default:'' }}" {% field_readonly fields|get_item:'2e' %}>
+    </div>
+  </div>
+
+  <div class="form-eiw-step-header">
+    Part 3 - Total Earned Income
+  </div>
+
+  <div class="form-eiw-section">
+    <div class="form-eiw-form-line form-eiw-total-line">
+      <span class="form-eiw-line-num">3</span>
+      <span class="form-eiw-line-text"><strong>Combined earned income total.</strong> Add lines 1a, 1b, 2a, 2b, and 2e</span>
+      <span class="form-eiw-line-box">3</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-eiw-step-header">
+    Part 4 - Adjustments
+  </div>
+
+  <div class="form-eiw-section">
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">4</span>
+      <span class="form-eiw-line-text">Medicaid waiver payments excluded from income (from Schedule 1, line 8s)</span>
+      <span class="form-eiw-line-box">4</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">5</span>
+      <span class="form-eiw-line-text">Deductible part of self-employment tax from Schedule 1, line 15</span>
+      <span class="form-eiw-line-box">5</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-eiw-form-line">
+      <span class="form-eiw-line-num">6</span>
+      <span class="form-eiw-line-text">Add lines 4 and 5</span>
+      <span class="form-eiw-line-box">6</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+  </div>
+
+  <div class="form-eiw-step-header">
+    Part 5 - Final Earned Income
+  </div>
+
+  <div class="form-eiw-section">
+    <div class="form-eiw-form-line form-eiw-total-line">
+      <span class="form-eiw-line-num">7</span>
+      <span class="form-eiw-line-text"><strong>Earned income.</strong> Subtract line 6 from line 3. This is your earned income for the EIC.</span>
+      <span class="form-eiw-line-box">7</span>
+      <input type="text" class="form-eiw-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-eiw-note">
+    <strong>Note:</strong> If you have nontaxable combat pay on line 1b, you can choose to include it in your earned income.
+    Including it could increase or decrease your EIC. Figure the credit both ways to determine which gives you the larger credit.
+  </div>
+
+  <div class="form-eiw-important">
+    <strong>Important:</strong> Use the amount from line 7 on EIC Worksheet B, line 1, to continue figuring your Earned Income Credit.
+  </div>
+
+  <div class="form-eiw-footer">
+    <div>
+      <strong>For instructions, see the EIC section of your tax return instructions.</strong>
+    </div>
+    <div>
+      Keep for your records
+    </div>
+    <div>
+      <strong>Earned Income Worksheet ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

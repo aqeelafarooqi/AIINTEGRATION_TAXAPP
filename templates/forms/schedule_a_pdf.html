@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+{% load static custom_filters %}
+<head>
+  <meta charset="utf-8">
+  <title>Schedule A (Form 1040)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    {% inline_static 'css/schedule_a.css' %}
+  </style>
+</head>
+<body class="schedule-a">
+{% form_fields_map form as fields %}
+
+<div class="schedule-a-wrapper">
+  <div class="schedule-a-page">
+    
+    <!-- Header -->
+    <div class="schedule-a-header">
+      <div class="schedule-a-title">
+        <div class="schedule-a-form-number">SCHEDULE A<br>(Form 1040)</div>
+        <div class="schedule-a-form-title">Itemized Deductions</div>
+        <div class="schedule-a-omb">OMB No. 1545-0074<br><strong>{{ year }}</strong></div>
+      </div>
+      
+      <div class="schedule-a-subtitle">
+        <strong>▶ Go to <a href="www.irs.gov/ScheduleA">www.irs.gov/ScheduleA</a> for instructions and the latest information.</strong><br>
+        <strong>▶ Attach to Form 1040 or 1040-SR.</strong>
+      </div>
+      
+      <div class="schedule-a-instructions">
+        <strong class="schedule-a-caution">Caution:</strong> If you are claiming a net qualified disaster loss on Form 4684, see the instructions for line 16.
+      </div>
+      
+      <div class="schedule-a-dept">
+        Department of the Treasury—Internal Revenue Service
+      </div>
+    </div>
+
+    <!-- Taxpayer Information -->
+    <div class="schedule-a-taxpayer-info">
+      <div class="schedule-a-name">
+        <strong>Name(s) shown on Form 1040 or 1040-SR</strong><br>
+        <span style="color: #0033CC; font-weight: bold;">
+          {% if taxpayer %}
+            {{ taxpayer.first_name|default:'' }} {{ taxpayer.last_name|default:'' }}
+            {% if taxpayer.taxpayer_spouse %}
+              and {{ taxpayer.taxpayer_spouse.first_name|default:'' }} {{ taxpayer.taxpayer_spouse.last_name|default:'' }}
+            {% endif %}
+          {% elif user.first_name %}
+            {{ user.first_name|default:'' }} {{ user.last_name|default:'' }}
+            {% if user.user_spouse %}
+              and {{ user.user_spouse.first_name|default:'' }} {{ user.user_spouse.last_name|default:'' }}
+            {% endif %}
+          {% endif %}
+        </span>
+      </div>
+      <div class="schedule-a-ssn">
+        <strong>Your social security number</strong><br>
+        <span style="color: #0033CC;">{{ taxpayer.ssn|default:'' }}</span>
+      </div>
+    </div>
+
+    <!-- Medical and Dental Expenses -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">
+        Medical and Dental Expenses
+        <span class="schedule-a-caution" style="margin-left: 20px;">Caution:</span>
+        <span style="font-weight: normal; font-size: 9pt;">Do not include expenses reimbursed or paid by others.</span>
+      </div>
+      
+      {% with field=fields|get_item:"1" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">1</div>
+        <div class="schedule-a-line-label">Medical and dental expenses (see instructions)</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"2" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">2</div>
+        <div class="schedule-a-line-label">Enter amount from Form 1040 or 1040-SR, line 11</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"3" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">3</div>
+        <div class="schedule-a-line-label">Multiply line 2 by 7.5% (0.075)</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"4" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">4</div>
+        <div class="schedule-a-line-label">Subtract line 3 from line 1. If line 3 is more than line 1, enter -0-</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Taxes You Paid -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">Taxes You Paid</div>
+      
+      {% with field=fields|get_item:"5a" %}
+      <div class="schedule-a-line indented">
+        <div class="schedule-a-line-number">5</div>
+        <div class="schedule-a-line-label">
+          State and local taxes.<br>
+          <strong>a</strong> State and local income taxes or general sales taxes. You may include either income taxes or general sales taxes on line 5a, but not both. If you elect to include general sales taxes instead of income taxes, check this box
+          <span class="schedule-a-checkbox">
+            <input type="checkbox">
+          </span>
+        </div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"5b" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">b</div>
+        <div class="schedule-a-line-label">State and local real estate taxes (see instructions)</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"5c" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">c</div>
+        <div class="schedule-a-line-label">State and local personal property taxes</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"5d" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">d</div>
+        <div class="schedule-a-line-label">Add lines 5a through 5c</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"5e" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">e</div>
+        <div class="schedule-a-line-label">Enter the smaller of line 5d or $10,000 ($5,000 if married filing separately)</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"6" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">6</div>
+        <div class="schedule-a-line-label">Other taxes. List type and amount: _____________________</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"7" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">7</div>
+        <div class="schedule-a-line-label">Add lines 5e and 6</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Interest You Paid -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">
+        Interest You Paid
+        <span style="font-weight: normal; font-size: 9pt; margin-left: 20px;">
+          <strong class="schedule-a-caution">Caution:</strong> Your mortgage interest deduction may be limited (see instructions).
+        </span>
+      </div>
+      
+      {% with field=fields|get_item:"8a" %}
+      <div class="schedule-a-line indented">
+        <div class="schedule-a-line-number">8</div>
+        <div class="schedule-a-line-label">
+          Home mortgage interest and points. If you didn't use all of your home mortgage loan(s) to buy, build, or improve your home, see instructions and check this box
+          <span class="schedule-a-checkbox">
+            <input type="checkbox">
+          </span><br>
+          <strong>a</strong> Home mortgage interest and points reported to you on Form 1098. See instructions if limited
+        </div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"8b" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">b</div>
+        <div class="schedule-a-line-label">Home mortgage interest not reported to you on Form 1098. See instructions if limited. If paid to the person from whom you bought the home, see instructions and show that person's name, identifying no., and address</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"8c" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">c</div>
+        <div class="schedule-a-line-label">Points not reported to you on Form 1098. See instructions for special rules</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"8d" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">d</div>
+        <div class="schedule-a-line-label">Reserved for future use</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"8e" %}
+      <div class="schedule-a-line indented sub-line">
+        <div class="schedule-a-line-number">e</div>
+        <div class="schedule-a-line-label">Add lines 8a through 8c</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"9" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">9</div>
+        <div class="schedule-a-line-label">Investment interest. Attach Form 4952 if required. See instructions</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"10" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">10</div>
+        <div class="schedule-a-line-label">Add lines 8e and 9</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Gifts to Charity -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">
+        Gifts to Charity
+        <span style="font-weight: normal; font-size: 9pt; margin-left: 20px;">
+          <strong class="schedule-a-caution">Caution:</strong> If you made a gift and got a benefit for it, see instructions.
+        </span>
+      </div>
+      
+      {% with field=fields|get_item:"11" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">11</div>
+        <div class="schedule-a-line-label">Gifts by cash or check. If you made any gift of $250 or more, see instructions</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"12" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">12</div>
+        <div class="schedule-a-line-label">Other than by cash or check. If you made any gift of $250 or more, see instructions. You must attach Form 8283 if over $500</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"13" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">13</div>
+        <div class="schedule-a-line-label">Carryover from prior year</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"14" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">14</div>
+        <div class="schedule-a-line-label">Add lines 11 through 13</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Casualty and Theft Losses -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">Casualty and Theft Losses</div>
+      
+      {% with field=fields|get_item:"15" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">15</div>
+        <div class="schedule-a-line-label">Casualty and theft loss(es) from a federally declared disaster (other than net qualified disaster losses). Attach Form 4684 and enter the amount from line 18 of that form. See instructions</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Other Itemized Deductions -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">Other Itemized Deductions</div>
+      
+      {% with field=fields|get_item:"16" %}
+      <div class="schedule-a-line total">
+        <div class="schedule-a-line-number">16</div>
+        <div class="schedule-a-line-label">Other—from list in instructions. List type and amount: _____________________</div>
+        <div class="schedule-a-line-value">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Total Itemized Deductions -->
+    <div class="schedule-a-section">
+      <div class="schedule-a-section-title">Total Itemized Deductions</div>
+      
+      {% with field=fields|get_item:"17" %}
+      <div class="schedule-a-line total" style="background-color: #e0e0e0;">
+        <div class="schedule-a-line-number" style="background-color: #e0e0e0;">17</div>
+        <div class="schedule-a-line-label" style="font-size: 10pt;">Add the amounts in the far right column for lines 4 through 16. Also, enter this amount on Form 1040 or 1040-SR, line 12</div>
+        <div class="schedule-a-line-value" style="font-size: 11pt;">
+          <input type="text" class="schedule-a-line-input" value="{{ field|field_value|default:'' }}" readonly>
+        </div>
+      </div>
+      {% endwith %}
+      
+      {% with field=fields|get_item:"18" %}
+      <div class="schedule-a-line">
+        <div class="schedule-a-line-number">18</div>
+        <div class="schedule-a-line-label">
+          If you elect to itemize deductions even though they are less than your standard deduction, check this box
+          <span class="schedule-a-checkbox">
+            <input type="checkbox">
+          </span>
+        </div>
+        <div class="schedule-a-line-value"></div>
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- Footer -->
+    <div class="schedule-a-footer">
+      <div>
+        <strong>For Paperwork Reduction Act Notice, see the Instructions for Form 1040.</strong>
+      </div>
+      <div>
+        Cat. No. 17145C
+      </div>
+      <div>
+        <strong>Schedule A (Form 1040) {{ year }}</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
+

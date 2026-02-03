@@ -1,0 +1,646 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule 1 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_1.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+{% if request.user.is_superuser %}
+As superuser you can <a href="{% url " edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+{% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="schedule-1-container">
+  <!-- Header -->
+  <div class="schedule-1-top-header">
+    <div class="schedule-1-top-left">
+      <div class="schedule-1-form-label">SCHEDULE 1</div>
+      <div class="schedule-1-form-number">(Form 1040)</div>
+      <div class="schedule-1-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-1-top-center">
+      <div class="schedule-1-main-title">Additional Income and Adjustments to Income</div>
+      <div class="schedule-1-attach-note"><strong>Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="schedule-1-web-link"><strong>Go to <a href="https://www.irs.gov/Form1040"
+            target="_blank">www.irs.gov/Form1040</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-1-top-right">
+      <div class="schedule-1-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-1-year-large">{{ year }}</div>
+      <div class="schedule-1-attachment">Attachment<br>Sequence No. <strong>01</strong></div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="schedule-1-name-row">
+    <div class="schedule-1-name-label">
+      <strong>Name(s) shown on Form 1040, 1040-SR, or 1040-NR</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+        and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="schedule-1-ssn-box">
+      <strong>Your social security number</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Main form table -->
+  <table class="schedule-1-main-table">
+    <tr>
+      <td class="schedule-1-left-column">
+        <div class="schedule-1-section-header">Part I<br>Additional<br>Income</div>
+      </td>
+      <td class="schedule-1-middle-column">
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">1</span>
+          <span class="schedule-1-line-text">Taxable refunds, credits, or offsets of state and local income taxes <span
+              class="schedule-1-dots">. . . . . .</span></span>
+          <span class="schedule-1-line-box">1</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}"{% field_readonly fields|get_item:'1' %} {% field_disabled fields|get_item:'1' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">2a</span>
+          <span class="schedule-1-line-text">Alimony received <span class="schedule-1-dots">. . . . . . . . . . . . . .
+              . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">2a</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}"{% field_readonly fields|get_item:'2a' %} {% field_disabled fields|get_item:'2a' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">b</span>
+          <span class="schedule-1-line-text">Date of original divorce or separation agreement (see instructions): <input
+              type="text" class="schedule-1-date-input irs-line-input"
+              value="{{ fields|get_item:'2b'|field_value|default:'' }}"></span>
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">3</span>
+          <span class="schedule-1-line-text">Business income or (loss). Attach Schedule C <span
+              class="schedule-1-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">3</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}"{% field_readonly fields|get_item:'3' %} {% field_disabled fields|get_item:'3' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">4</span>
+          <span class="schedule-1-line-text">Other gains or (losses). Attach Form 4797 <span class="schedule-1-dots">. .
+              . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">4</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}"{% field_readonly fields|get_item:'4' %} {% field_disabled fields|get_item:'4' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">5</span>
+          <span class="schedule-1-line-text">Rental real estate, royalties, partnerships, S corporations, trusts, etc.
+            Attach Schedule E <span class="schedule-1-dots">. .</span></span>
+          <span class="schedule-1-line-box">5</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}"{% field_readonly fields|get_item:'5' %} {% field_disabled fields|get_item:'5' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">6</span>
+          <span class="schedule-1-line-text">Farm income or (loss). Attach Schedule F <span class="schedule-1-dots">. .
+              . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">6</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}"{% field_readonly fields|get_item:'6' %} {% field_disabled fields|get_item:'6' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">7</span>
+          <span class="schedule-1-line-text">Unemployment compensation <span class="schedule-1-dots">. . . . . . . . . .
+              . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">7</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}"{% field_readonly fields|get_item:'7' %} {% field_disabled fields|get_item:'7' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">8</span>
+          <span class="schedule-1-line-text">Other income:</span>
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">a</span>
+          <span class="schedule-1-line-text">Net operating loss <span class="schedule-1-dots">. . . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8a</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8a'|field_id }}" value="{{ fields|get_item:'8a'|field_value|default:'' }}"{% field_readonly fields|get_item:'8a' %} {% field_disabled fields|get_item:'8a' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">b</span>
+          <span class="schedule-1-line-text">Gambling <span class="schedule-1-dots">. . . . . . . . . . . . . . . . . .
+              . . . . . .</span></span>
+          <span class="schedule-1-line-box">8b</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8b'|field_id }}" value="{{ fields|get_item:'8b'|field_value|default:'' }}"{% field_readonly fields|get_item:'8b' %} {% field_disabled fields|get_item:'8b' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">c</span>
+          <span class="schedule-1-line-text">Cancellation of debt <span class="schedule-1-dots">. . . . . . . . . . . .
+              . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8c</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8c'|field_id }}" value="{{ fields|get_item:'8c'|field_value|default:'' }}"{% field_readonly fields|get_item:'8c' %} {% field_disabled fields|get_item:'8c' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">d</span>
+          <span class="schedule-1-line-text">Foreign earned income exclusion from Form 2555 <span
+              class="schedule-1-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8d</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8d'|field_id }}" value="{{ fields|get_item:'8d'|field_value|default:'' }}"{% field_readonly fields|get_item:'8d' %} {% field_disabled fields|get_item:'8d' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">e</span>
+          <span class="schedule-1-line-text">Income from Form 8853 <span class="schedule-1-dots">. . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8e</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8e'|field_id }}" value="{{ fields|get_item:'8e'|field_value|default:'' }}"{% field_readonly fields|get_item:'8e' %} {% field_disabled fields|get_item:'8e' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">f</span>
+          <span class="schedule-1-line-text">Income from Form 8889 <span class="schedule-1-dots">. . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8f</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8f'|field_id }}" value="{{ fields|get_item:'8f'|field_value|default:'' }}"{% field_readonly fields|get_item:'8f' %} {% field_disabled fields|get_item:'8f' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">g</span>
+          <span class="schedule-1-line-text">Alaska Permanent Fund dividends <span class="schedule-1-dots">. . . . . . .
+              . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8g</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8g'|field_id }}" value="{{ fields|get_item:'8g'|field_value|default:'' }}"{% field_readonly fields|get_item:'8g' %} {% field_disabled fields|get_item:'8g' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">h</span>
+          <span class="schedule-1-line-text">Jury duty pay <span class="schedule-1-dots">. . . . . . . . . . . . . . . .
+              . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8h</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8h'|field_id }}" value="{{ fields|get_item:'8h'|field_value|default:'' }}"{% field_readonly fields|get_item:'8h' %} {% field_disabled fields|get_item:'8h' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">i</span>
+          <span class="schedule-1-line-text">Prizes and awards <span class="schedule-1-dots">. . . . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8i</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8i'|field_id }}" value="{{ fields|get_item:'8i'|field_value|default:'' }}"{% field_readonly fields|get_item:'8i' %} {% field_disabled fields|get_item:'8i' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">j</span>
+          <span class="schedule-1-line-text">Activity not engaged in for profit income <span class="schedule-1-dots">. .
+              . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8j</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8j'|field_id }}" value="{{ fields|get_item:'8j'|field_value|default:'' }}"{% field_readonly fields|get_item:'8j' %} {% field_disabled fields|get_item:'8j' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">k</span>
+          <span class="schedule-1-line-text">Stock options <span class="schedule-1-dots">. . . . . . . . . . . . . . . .
+              . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8k</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8k'|field_id }}" value="{{ fields|get_item:'8k'|field_value|default:'' }}"{% field_readonly fields|get_item:'8k' %} {% field_disabled fields|get_item:'8k' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">l</span>
+          <span class="schedule-1-line-text">Income from the rental of personal property if you engaged in the rental
+            for profit but were not in the business of renting such property <span class="schedule-1-dots">. . . . . . .
+              . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8l</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8l'|field_id }}" value="{{ fields|get_item:'8l'|field_value|default:'' }}"{% field_readonly fields|get_item:'8l' %} {% field_disabled fields|get_item:'8l' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">m</span>
+          <span class="schedule-1-line-text">Olympic and Paralympic medals and USOC prize money (see instructions) <span
+              class="schedule-1-dots">. . .</span></span>
+          <span class="schedule-1-line-box">8m</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8m'|field_id }}" value="{{ fields|get_item:'8m'|field_value|default:'' }}"{% field_readonly fields|get_item:'8m' %} {% field_disabled fields|get_item:'8m' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">n</span>
+          <span class="schedule-1-line-text">Section 951(a) inclusion (see instructions) <span class="schedule-1-dots">.
+              . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8n</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8n'|field_id }}" value="{{ fields|get_item:'8n'|field_value|default:'' }}"{% field_readonly fields|get_item:'8n' %} {% field_disabled fields|get_item:'8n' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">o</span>
+          <span class="schedule-1-line-text">Section 951A(a) inclusion (see instructions) <span
+              class="schedule-1-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8o</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8o'|field_id }}" value="{{ fields|get_item:'8o'|field_value|default:'' }}"{% field_readonly fields|get_item:'8o' %} {% field_disabled fields|get_item:'8o' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">p</span>
+          <span class="schedule-1-line-text">Section 461(l) excess business loss adjustment <span
+              class="schedule-1-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8p</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8p'|field_id }}" value="{{ fields|get_item:'8p'|field_value|default:'' }}"{% field_readonly fields|get_item:'8p' %} {% field_disabled fields|get_item:'8p' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">q</span>
+          <span class="schedule-1-line-text">Taxable distributions from an ABLE account (see instructions) <span
+              class="schedule-1-dots">. . . . . . . .</span></span>
+          <span class="schedule-1-line-box">8q</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8q'|field_id }}" value="{{ fields|get_item:'8q'|field_value|default:'' }}"{% field_readonly fields|get_item:'8q' %} {% field_disabled fields|get_item:'8q' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">z</span>
+          <span class="schedule-1-line-text">Other income. List type and amount: <span
+              class="schedule-1-underline">_______________________</span></span>
+          <span class="schedule-1-line-box">8z</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'8z'|field_id }}" value="{{ fields|get_item:'8z'|field_value|default:'' }}"{% field_readonly fields|get_item:'8z' %} {% field_disabled fields|get_item:'8z' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">9</span>
+          <span class="schedule-1-line-text"><strong>Total other income. Add lines 8a through 8z</strong> <span
+              class="schedule-1-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">9</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}"{% field_readonly fields|get_item:'9' %} {% field_disabled fields|get_item:'9' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-total-line">
+          <span class="schedule-1-line-num">10</span>
+          <span class="schedule-1-line-text"><strong>Combine lines 1 through 7 and 9. Enter here and on Form 1040,
+              1040-SR, or 1040-NR, line 8</strong></span>
+          <span class="schedule-1-line-box">10</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}"{% field_readonly fields|get_item:'10' %} {% field_disabled fields|get_item:'10' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-1-left-column">
+        <div class="schedule-1-section-header">Part II<br>Adjustments<br>to Income</div>
+      </td>
+      <td class="schedule-1-middle-column">
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">11</span>
+          <span class="schedule-1-line-text">Educator expenses <span class="schedule-1-dots">. . . . . . . . . . . . . .
+              . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">11</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}"{% field_readonly fields|get_item:'11' %} {% field_disabled fields|get_item:'11' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">12</span>
+          <span class="schedule-1-line-text">Certain business expenses of reservists, performing artists, and fee-basis
+            government officials. Attach Form 2106 <span class="schedule-1-dots">. . . . . . . . . . . . . . . . . . . .
+              . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">12</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}"{% field_readonly fields|get_item:'12' %} {% field_disabled fields|get_item:'12' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">13</span>
+          <span class="schedule-1-line-text">Health savings account deduction. Attach Form 8889 <span
+              class="schedule-1-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">13</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}"{% field_readonly fields|get_item:'13' %} {% field_disabled fields|get_item:'13' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">14</span>
+          <span class="schedule-1-line-text">Moving expenses for members of the Armed Forces. Attach Form 3903 <span
+              class="schedule-1-dots">. . . . . .</span></span>
+          <span class="schedule-1-line-box">14</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}"{% field_readonly fields|get_item:'14' %} {% field_disabled fields|get_item:'14' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">15</span>
+          <span class="schedule-1-line-text">Deductible part of self-employment tax. Attach Schedule SE <span
+              class="schedule-1-dots">. . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">15</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}"{% field_readonly fields|get_item:'15' %} {% field_disabled fields|get_item:'15' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">16</span>
+          <span class="schedule-1-line-text">Self-employed SEP, SIMPLE, and qualified plans <span
+              class="schedule-1-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">16</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}"{% field_readonly fields|get_item:'16' %} {% field_disabled fields|get_item:'16' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">17</span>
+          <span class="schedule-1-line-text">Self-employed health insurance deduction <span class="schedule-1-dots">. .
+              . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">17</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}"{% field_readonly fields|get_item:'17' %} {% field_disabled fields|get_item:'17' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">18</span>
+          <span class="schedule-1-line-text">Penalty on early withdrawal of savings <span class="schedule-1-dots">. . .
+              . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">18</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}"{% field_readonly fields|get_item:'18' %} {% field_disabled fields|get_item:'18' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">19a</span>
+          <span class="schedule-1-line-text">Alimony paid <span class="schedule-1-dots">. . . . . . . . . . . . . . . .
+              . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">19a</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'19a'|field_id }}" value="{{ fields|get_item:'19a'|field_value|default:'' }}"{% field_readonly fields|get_item:'19a' %} {% field_disabled fields|get_item:'19a' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">b</span>
+          <span class="schedule-1-line-text">Recipient's SSN: <input type="text" class="schedule-1-ssn-input irs-line-input"
+              value="{{ fields|get_item:'19b'|field_value|default:'' }}"> Date of original divorce or separation
+            agreement (see instructions): <input type="text" class="schedule-1-date-input irs-line-input"
+              value="{{ fields|get_item:'19c'|field_value|default:'' }}"></span>
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">20</span>
+          <span class="schedule-1-line-text">IRA deduction <span class="schedule-1-dots">. . . . . . . . . . . . . . . .
+              . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">20</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}"{% field_readonly fields|get_item:'20' %} {% field_disabled fields|get_item:'20' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">21</span>
+          <span class="schedule-1-line-text">Student loan interest deduction <span class="schedule-1-dots">. . . . . . .
+              . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">21</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}"{% field_readonly fields|get_item:'21' %} {% field_disabled fields|get_item:'21' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">22</span>
+          <span class="schedule-1-line-text">Reserved for future use <span class="schedule-1-dots">. . . . . . . . . . .
+              . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">22</span>
+          <input type="text" class="schedule-1-line-input schedule-1-gray-field" value="" readonly>
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">23</span>
+          <span class="schedule-1-line-text">Archer MSA deduction <span class="schedule-1-dots">. . . . . . . . . . . .
+              . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">23</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}"{% field_readonly fields|get_item:'23' %} {% field_disabled fields|get_item:'23' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">24</span>
+          <span class="schedule-1-line-text">Other adjustments:</span>
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">a</span>
+          <span class="schedule-1-line-text">Jury duty pay (see instructions) <span class="schedule-1-dots">. . . . . .
+              . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24a</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24a'|field_id }}" value="{{ fields|get_item:'24a'|field_value|default:'' }}"{% field_readonly fields|get_item:'24a' %} {% field_disabled fields|get_item:'24a' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">b</span>
+          <span class="schedule-1-line-text">Deductible expenses related to income reported on line 8l from the rental
+            of personal property <span class="schedule-1-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+              . . .</span></span>
+          <span class="schedule-1-line-box">24b</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24b'|field_id }}" value="{{ fields|get_item:'24b'|field_value|default:'' }}"{% field_readonly fields|get_item:'24b' %} {% field_disabled fields|get_item:'24b' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">c</span>
+          <span class="schedule-1-line-text">Nontaxable amount of the value of Olympic and Paralympic medals and USOC
+            prize money reported on line 8m <span class="schedule-1-dots">. . . . . . . . . . . . . . . . . . . . . . .
+              . . . .</span></span>
+          <span class="schedule-1-line-box">24c</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24c'|field_id }}" value="{{ fields|get_item:'24c'|field_value|default:'' }}"{% field_readonly fields|get_item:'24c' %} {% field_disabled fields|get_item:'24c' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">d</span>
+          <span class="schedule-1-line-text">Reforestation amortization and expenses <span class="schedule-1-dots">. . .
+              . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24d</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24d'|field_id }}" value="{{ fields|get_item:'24d'|field_value|default:'' }}"{% field_readonly fields|get_item:'24d' %} {% field_disabled fields|get_item:'24d' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">e</span>
+          <span class="schedule-1-line-text">Repayment of supplemental unemployment benefits under the Trade Act of 1974
+            <span class="schedule-1-dots">. . .</span></span>
+          <span class="schedule-1-line-box">24e</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24e'|field_id }}" value="{{ fields|get_item:'24e'|field_value|default:'' }}"{% field_readonly fields|get_item:'24e' %} {% field_disabled fields|get_item:'24e' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">f</span>
+          <span class="schedule-1-line-text">Contributions to section 501(c)(18)(D) pension plans <span
+              class="schedule-1-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24f</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24f'|field_id }}" value="{{ fields|get_item:'24f'|field_value|default:'' }}"{% field_readonly fields|get_item:'24f' %} {% field_disabled fields|get_item:'24f' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">g</span>
+          <span class="schedule-1-line-text">Contributions by certain chaplains to section 403(b) plans <span
+              class="schedule-1-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24g</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24g'|field_id }}" value="{{ fields|get_item:'24g'|field_value|default:'' }}"{% field_readonly fields|get_item:'24g' %} {% field_disabled fields|get_item:'24g' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">h</span>
+          <span class="schedule-1-line-text">Attorney fees and court costs for actions involving certain unlawful
+            discrimination claims (see instructions) <span class="schedule-1-dots">. . . . . . . . . . . . . . . . . . .
+              . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24h</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24h'|field_id }}" value="{{ fields|get_item:'24h'|field_value|default:'' }}"{% field_readonly fields|get_item:'24h' %} {% field_disabled fields|get_item:'24h' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">i</span>
+          <span class="schedule-1-line-text">Attorney fees and court costs you paid in connection with an award from the
+            IRS for information you provided that helped the IRS detect tax law violations <span
+              class="schedule-1-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24i</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24i'|field_id }}" value="{{ fields|get_item:'24i'|field_value|default:'' }}"{% field_readonly fields|get_item:'24i' %} {% field_disabled fields|get_item:'24i' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">j</span>
+          <span class="schedule-1-line-text">Housing deduction from Form 2555 <span class="schedule-1-dots">. . . . . .
+              . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">24j</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24j'|field_id }}" value="{{ fields|get_item:'24j'|field_value|default:'' }}"{% field_readonly fields|get_item:'24j' %} {% field_disabled fields|get_item:'24j' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">k</span>
+          <span class="schedule-1-line-text">Excess deductions of section 67(e) expenses from Schedule K-1 (Form 1041)
+            <span class="schedule-1-dots">. . . . .</span></span>
+          <span class="schedule-1-line-box">24k</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24k'|field_id }}" value="{{ fields|get_item:'24k'|field_value|default:'' }}"{% field_readonly fields|get_item:'24k' %} {% field_disabled fields|get_item:'24k' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-indent">
+          <span class="schedule-1-line-num">z</span>
+          <span class="schedule-1-line-text">Other adjustments. List type and amount: <span
+              class="schedule-1-underline">___________________</span></span>
+          <span class="schedule-1-line-box">24z</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'24z'|field_id }}" value="{{ fields|get_item:'24z'|field_value|default:'' }}"{% field_readonly fields|get_item:'24z' %} {% field_disabled fields|get_item:'24z' %} >
+        </div>
+
+        <div class="schedule-1-form-line">
+          <span class="schedule-1-line-num">25</span>
+          <span class="schedule-1-line-text"><strong>Total other adjustments. Add lines 24a through 24z</strong> <span
+              class="schedule-1-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-1-line-box">25</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'25'|field_id }}" value="{{ fields|get_item:'25'|field_value|default:'' }}"{% field_readonly fields|get_item:'25' %} {% field_disabled fields|get_item:'25' %} >
+        </div>
+
+        <div class="schedule-1-form-line schedule-1-total-line">
+          <span class="schedule-1-line-num">26</span>
+          <span class="schedule-1-line-text"><strong>Add lines 11 through 23 and 25. These are your adjustments to
+              income. Enter here and on Form 1040, 1040-SR, or 1040-NR, line 10</strong></span>
+          <span class="schedule-1-line-box">26</span>
+          <input type="text" class="schedule-1-line-input irs-line-input" name="{{ fields|get_item:'26'|field_id }}" value="{{ fields|get_item:'26'|field_value|default:'' }}"{% field_readonly fields|get_item:'26' %} {% field_disabled fields|get_item:'26' %} >
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="schedule-1-footer">
+    <div class="schedule-1-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div class="schedule-1-footer-center">
+      Cat. No. 71479F
+    </div>
+    <div class="schedule-1-footer-right">
+      <strong>Schedule 1 (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

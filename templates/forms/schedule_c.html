@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule C - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/schedule_c.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="schedule-c-container">
+  <div class="schedule-c-top-header">
+    <div class="schedule-c-top-left">
+      <div class="schedule-c-form-label">SCHEDULE C</div>
+      <div class="schedule-c-form-number">(Form 1040)</div>
+      <div class="schedule-c-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-c-top-center">
+      <div class="schedule-c-main-title">Profit or Loss From Business</div>
+      <div class="schedule-c-subtitle">(Sole Proprietorship)</div>
+      <div class="schedule-c-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/ScheduleC" target="_blank">www.irs.gov/ScheduleC</a> for instructions and the latest information.</strong></div>
+      <div class="schedule-c-web-link"><strong>▶ Attach to Form 1040, 1040-SR, 1040-NR, or 1041; partnerships must generally file Form 1065.</strong></div>
+    </div>
+    <div class="schedule-c-top-right">
+      <div class="schedule-c-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-c-year-large">{{ year }}</div>
+      <div class="schedule-c-attachment">Attachment<br>Sequence No. <strong>09</strong></div>
+    </div>
+  </div>
+
+  <div class="schedule-c-name-row">
+    <div class="schedule-c-name-label" style="flex: 2;">
+      <strong>Name of proprietor</strong><br>
+      <span style="color: #0033CC; font-weight: bold; font-size: 11pt;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+      </span>
+    </div>
+    <div class="schedule-c-ssn-box">
+      <strong>Social security number (SSN)</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <div class="schedule-c-info-section">
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-letter"><strong>A</strong></span>
+      <span class="schedule-c-line-text">Principal business or profession, including product or service:</span>
+      <input type="text" class="schedule-c-text-input" name="{{ fields|get_item:'A'|field_id }}" value="{{ fields|get_item:'A'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-letter"><strong>B</strong></span>
+      <span class="schedule-c-line-text">Enter code from instructions:</span>
+      <input type="text" class="schedule-c-text-input" style="width: 100px;" name="{{ fields|get_item:'B'|field_id }}" value="{{ fields|get_item:'B'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-letter"><strong>C</strong></span>
+      <span class="schedule-c-line-text">Business name (if no separate business name, leave blank):</span>
+      <input type="text" class="schedule-c-text-input" name="{{ fields|get_item:'C'|field_id }}" value="{{ fields|get_item:'C'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-letter"><strong>D</strong></span>
+      <span class="schedule-c-line-text">Employer ID number (EIN), if any:</span>
+      <input type="text" class="schedule-c-text-input" style="width: 150px;" name="{{ fields|get_item:'D'|field_id }}" value="{{ fields|get_item:'D'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-letter"><strong>E</strong></span>
+      <span class="schedule-c-line-text">Business address (including suite or room no.):</span>
+      <input type="text" class="schedule-c-text-input" style="width: 400px;" name="{{ fields|get_item:'E'|field_id }}" value="{{ fields|get_item:'E'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="schedule-c-part-header">
+    Part I - Income
+  </div>
+
+  <div class="schedule-c-section">
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">1</span>
+      <span class="schedule-c-line-text">Gross receipts or sales</span>
+      <span class="schedule-c-line-box">1</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">2</span>
+      <span class="schedule-c-line-text">Returns and allowances</span>
+      <span class="schedule-c-line-box">2</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-calc-line">
+      <span class="schedule-c-line-num">3</span>
+      <span class="schedule-c-line-text">Subtract line 2 from line 1</span>
+      <span class="schedule-c-line-box">3</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">4</span>
+      <span class="schedule-c-line-text">Cost of goods sold (from line 42)</span>
+      <span class="schedule-c-line-box">4</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-calc-line">
+      <span class="schedule-c-line-num">5</span>
+      <span class="schedule-c-line-text"><strong>Gross profit.</strong> Subtract line 4 from line 3</span>
+      <span class="schedule-c-line-box">5</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">6</span>
+      <span class="schedule-c-line-text">Other income, including federal and state gasoline or fuel tax credit or refund</span>
+      <span class="schedule-c-line-box">6</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-total-line">
+      <span class="schedule-c-line-num">7</span>
+      <span class="schedule-c-line-text"><strong>Gross income.</strong> Add lines 5 and 6</span>
+      <span class="schedule-c-line-box">7</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+  </div>
+
+  <div class="schedule-c-part-header">
+    Part II - Expenses
+  </div>
+
+  <div class="schedule-c-two-column">
+    <div class="schedule-c-column">
+      {% for line_num in "8 9 10 11 12 13 14 15 16a 16b 17 18 19"|split %}
+        {% with field=fields|get_item:line_num %}
+        {% if field %}
+        <div class="schedule-c-form-line">
+          <span class="schedule-c-line-num">{{ line_num }}</span>
+          <span class="schedule-c-line-text">{{ field.label|default:""|striptags }}</span>
+          <input type="text" class="schedule-c-line-input irs-line-input" name="{{ field|field_id }}" value="{{ field|field_value|default:'' }}">
+        </div>
+        {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <div class="schedule-c-column">
+      {% for line_num in "20a 20b 21 22 23 24a 24b 25 26 27"|split %}
+        {% with field=fields|get_item:line_num %}
+        {% if field %}
+        <div class="schedule-c-form-line">
+          <span class="schedule-c-line-num">{{ line_num }}</span>
+          <span class="schedule-c-line-text">{{ field.label|default:""|striptags }}</span>
+          <input type="text" class="schedule-c-line-input irs-line-input" name="{{ field|field_id }}" value="{{ field|field_value|default:'' }}">
+        </div>
+        {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="schedule-c-section">
+    <div class="schedule-c-form-line schedule-c-total-line">
+      <span class="schedule-c-line-num">28</span>
+      <span class="schedule-c-line-text"><strong>Total expenses</strong> before expenses for business use of home. Add lines 8 through 27</span>
+      <span class="schedule-c-line-box">28</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'28'|field_id }}" value="{{ fields|get_item:'28'|field_value|default:'' }}" {% field_readonly fields|get_item:'28' %}>
+    </div>
+    <div class="schedule-c-form-line schedule-c-calc-line">
+      <span class="schedule-c-line-num">29</span>
+      <span class="schedule-c-line-text">Tentative profit or (loss). Subtract line 28 from line 7</span>
+      <span class="schedule-c-line-box">29</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'29'|field_id }}" value="{{ fields|get_item:'29'|field_value|default:'' }}" {% field_readonly fields|get_item:'29' %}>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">30</span>
+      <span class="schedule-c-line-text">Expenses for business use of your home. Attach Form 8829 or use simplified method</span>
+      <span class="schedule-c-line-box">30</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'30'|field_id }}" value="{{ fields|get_item:'30'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-result-line">
+      <span class="schedule-c-line-num">31</span>
+      <span class="schedule-c-line-text"><strong>Net profit or (loss).</strong> Subtract line 30 from line 29. Enter on Form 1040, line 3</span>
+      <span class="schedule-c-line-box">31</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'31'|field_id }}" value="{{ fields|get_item:'31'|field_value|default:'' }}" {% field_readonly fields|get_item:'31' %}>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">32</span>
+      <span class="schedule-c-line-text">If you have a loss, check the box that describes your investment in this activity:</span>
+      <label style="margin-left: 20px;"><input type="checkbox" name="{{ fields|get_item:'32a'|field_id }}" {% if fields|get_item:'32a'|field_value %}checked{% endif %}> <strong>32a</strong> All investment is at risk</label>
+      <label style="margin-left: 20px;"><input type="checkbox" name="{{ fields|get_item:'32b'|field_id }}" {% if fields|get_item:'32b'|field_value %}checked{% endif %}> <strong>32b</strong> Some investment is not at risk</label>
+    </div>
+  </div>
+
+  <div class="schedule-c-part-header">
+    Part III - Cost of Goods Sold
+  </div>
+
+  <div class="schedule-c-section">
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">33</span>
+      <span class="schedule-c-line-text">Method(s) used to value closing inventory:</span>
+      <label style="margin-left: 10px;"><input type="checkbox" name="{{ fields|get_item:'33a'|field_id }}" {% if fields|get_item:'33a'|field_value %}checked{% endif %}> <strong>a</strong> Cost</label>
+      <label style="margin-left: 10px;"><input type="checkbox" name="{{ fields|get_item:'33b'|field_id }}" {% if fields|get_item:'33b'|field_value %}checked{% endif %}> <strong>b</strong> Lower of cost or market</label>
+      <label style="margin-left: 10px;"><input type="checkbox" name="{{ fields|get_item:'33c'|field_id }}" {% if fields|get_item:'33c'|field_value %}checked{% endif %}> <strong>c</strong> Other</label>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">34</span>
+      <span class="schedule-c-line-text">Was there any change in determining quantities, costs, or valuations between opening and closing inventory?</span>
+      <label style="margin-left: 20px;"><input type="checkbox" name="{{ fields|get_item:'34'|field_id }}" {% if fields|get_item:'34'|field_value %}checked{% endif %}> Yes</label>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">35</span>
+      <span class="schedule-c-line-text">Inventory at beginning of year</span>
+      <span class="schedule-c-line-box">35</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'35'|field_id }}" value="{{ fields|get_item:'35'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">36</span>
+      <span class="schedule-c-line-text">Purchases less cost of items withdrawn for personal use</span>
+      <span class="schedule-c-line-box">36</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'36'|field_id }}" value="{{ fields|get_item:'36'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">37</span>
+      <span class="schedule-c-line-text">Cost of labor (do not include any amounts paid to yourself)</span>
+      <span class="schedule-c-line-box">37</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'37'|field_id }}" value="{{ fields|get_item:'37'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">38</span>
+      <span class="schedule-c-line-text">Materials and supplies</span>
+      <span class="schedule-c-line-box">38</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'38'|field_id }}" value="{{ fields|get_item:'38'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">39</span>
+      <span class="schedule-c-line-text">Other costs</span>
+      <span class="schedule-c-line-box">39</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'39'|field_id }}" value="{{ fields|get_item:'39'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-calc-line">
+      <span class="schedule-c-line-num">40</span>
+      <span class="schedule-c-line-text">Add lines 35 through 39</span>
+      <span class="schedule-c-line-box">40</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'40'|field_id }}" value="{{ fields|get_item:'40'|field_value|default:'' }}" {% field_readonly fields|get_item:'40' %}>
+    </div>
+    <div class="schedule-c-form-line">
+      <span class="schedule-c-line-num">41</span>
+      <span class="schedule-c-line-text">Inventory at end of year</span>
+      <span class="schedule-c-line-box">41</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'41'|field_id }}" value="{{ fields|get_item:'41'|field_value|default:'' }}">
+    </div>
+    <div class="schedule-c-form-line schedule-c-total-line">
+      <span class="schedule-c-line-num">42</span>
+      <span class="schedule-c-line-text"><strong>Cost of goods sold.</strong> Subtract line 41 from line 40. Enter the result here and on line 4</span>
+      <span class="schedule-c-line-box">42</span>
+      <input type="text" class="schedule-c-line-input irs-line-input" name="{{ fields|get_item:'42'|field_id }}" value="{{ fields|get_item:'42'|field_value|default:'' }}" {% field_readonly fields|get_item:'42' %}>
+    </div>
+  </div>
+
+  <div class="schedule-c-footer">
+    <div class="schedule-c-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see the separate instructions.</strong>
+    </div>
+    <div class="schedule-c-footer-center">
+      Cat. No. 11334P
+    </div>
+    <div class="schedule-c-footer-right">
+      <strong>Schedule C (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

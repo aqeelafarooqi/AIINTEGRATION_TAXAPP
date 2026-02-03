@@ -1,0 +1,117 @@
+{% load static custom_filters %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+
+<div class="irs-form-container">
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+    {% csrf_token %}
+    
+    <div class="irs-form-fields">
+      {% for field in form.field_set.all|dictsort:"order" %}
+        <div class="irs-form-line {% if not field.can_be_modified %}calculated-field{% endif %}">
+          <span class="irs-line-num">{{ field.number }}</span>
+          <span class="irs-line-text">{{ field.label|safe }}</span>
+          <span class="irs-line-box">{{ field.number }}</span>
+          {% if field.ftype == 'checkbox' %}
+            <input id="{{ field.id }}"
+                   class="irs-checkbox-input user-input"
+                   name="{{ field.id }}"
+                   type="checkbox"
+                   {% if not field.can_be_modified %}disabled readonly{% endif %}
+                   {% if field.value %}checked{% endif %}>
+          {% else %}
+            <input id="{{ field.id }}"
+                   class="irs-line-input user-input"
+                   name="{{ field.id }}"
+                   type="{{ field.ftype }}"
+                   {% if not field.can_be_modified %}disabled readonly{% endif %}
+                   value="{{ field.get_value }}">
+          {% endif %}
+          {% if not field.can_be_modified %}
+            <span class="calculated-indicator" title="This field is calculated automatically"></span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit">
+      Save changes
+    </button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          console.error('Error in postMessage:', error);
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>

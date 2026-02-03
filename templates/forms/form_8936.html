@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8936 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8936.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8936-container">
+  <div class="form-8936-top-header">
+    <div class="form-8936-top-left">
+      <div class="form-8936-form-label">Form 8936</div>
+      <div class="form-8936-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8936-top-center">
+      <div class="form-8936-main-title">Clean Vehicle Credits</div>
+      <div class="form-8936-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+      <div class="form-8936-attach-note">▶ Go to <a href="https://www.irs.gov/Form8936" target="_blank">www.irs.gov/Form8936</a> for instructions and the latest information.</div>
+    </div>
+    <div class="form-8936-top-right">
+      <div class="form-8936-omb-line">OMB No. 1545-2137</div>
+      <div class="form-8936-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-8936-name-row">
+    <div class="form-8936-name-box" style="flex: 3;">
+      <div class="form-8936-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8936-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8936-name-box">
+      <div class="form-8936-name-label">Identifying number</div>
+      <input type="text" class="form-8936-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8936-part-header">
+    Part I — Vehicle Information
+  </div>
+
+  <div class="form-8936-section">
+    <div class="form-8936-vehicle-box">
+      <div class="form-8936-vehicle-title">Vehicle 1</div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">1a</span>
+        <span class="form-8936-line-text">Year</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}" style="width: 80px;">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">1b</span>
+        <span class="form-8936-line-text">Make</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">1c</span>
+        <span class="form-8936-line-text">Model</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'1c'|field_id }}" value="{{ fields|get_item:'1c'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">1d</span>
+        <span class="form-8936-line-text">Vehicle Identification Number (VIN)</span>
+        <input type="text" class="form-8936-line-input form-8936-vin-input irs-line-input" name="{{ fields|get_item:'1d'|field_id }}" value="{{ fields|get_item:'1d'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">2</span>
+        <span class="form-8936-line-text">Check if new or used</span>
+        <label><input type="radio" name="vehicle1_type" value="new" class="form-8936-checkbox"> New</label>
+        <label><input type="radio" name="vehicle1_type" value="used" class="form-8936-checkbox"> Used</label>
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">3</span>
+        <span class="form-8936-line-text">Date placed in service (mm/dd/yyyy)</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" style="width: 120px;">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">4</span>
+        <span class="form-8936-line-text">Tentative credit amount</span>
+        <span class="form-8936-line-box">4</span>
+        <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+      </div>
+    </div>
+
+    <div class="form-8936-vehicle-box">
+      <div class="form-8936-vehicle-title">Vehicle 2</div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">5a</span>
+        <span class="form-8936-line-text">Year</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'5a'|field_id }}" value="{{ fields|get_item:'5a'|field_value|default:'' }}" style="width: 80px;">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">5b</span>
+        <span class="form-8936-line-text">Make</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'5b'|field_id }}" value="{{ fields|get_item:'5b'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">5c</span>
+        <span class="form-8936-line-text">Model</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'5c'|field_id }}" value="{{ fields|get_item:'5c'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">5d</span>
+        <span class="form-8936-line-text">Vehicle Identification Number (VIN)</span>
+        <input type="text" class="form-8936-line-input form-8936-vin-input irs-line-input" name="{{ fields|get_item:'5d'|field_id }}" value="{{ fields|get_item:'5d'|field_value|default:'' }}">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">6</span>
+        <span class="form-8936-line-text">Check if new or used</span>
+        <label><input type="radio" name="vehicle2_type" value="new" class="form-8936-checkbox"> New</label>
+        <label><input type="radio" name="vehicle2_type" value="used" class="form-8936-checkbox"> Used</label>
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">7</span>
+        <span class="form-8936-line-text">Date placed in service (mm/dd/yyyy)</span>
+        <input type="text" class="form-8936-line-input form-8936-text-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" style="width: 120px;">
+      </div>
+
+      <div class="form-8936-form-line">
+        <span class="form-8936-line-num">8</span>
+        <span class="form-8936-line-text">Tentative credit amount</span>
+        <span class="form-8936-line-box">8</span>
+        <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+      </div>
+    </div>
+
+    <div class="form-8936-form-line form-8936-total-line">
+      <span class="form-8936-line-num">9</span>
+      <span class="form-8936-line-text"><strong>Total tentative credit amount.</strong> Add lines 4 and 8</span>
+      <span class="form-8936-line-box">9</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8936-part-header">
+    Part II — Credit Limitation Based on Modified AGI
+  </div>
+
+  <div class="form-8936-section">
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">10</span>
+      <span class="form-8936-line-text">Modified Adjusted Gross Income (MAGI)</span>
+      <span class="form-8936-line-box">10</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% if fields|get_item:'10'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">11</span>
+      <span class="form-8936-line-text">MAGI threshold based on filing status (see instructions)</span>
+      <span class="form-8936-line-box">11</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% if fields|get_item:'11'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">12</span>
+      <span class="form-8936-line-text">Subtract line 11 from line 10. If zero or less, skip to Part III</span>
+      <span class="form-8936-line-box">12</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% if fields|get_item:'12'|field_readonly %}readonly{% endif %}>
+    </div>
+  </div>
+
+  <div class="form-8936-part-header">
+    Part III — Credit Computation
+  </div>
+
+  <div class="form-8936-section">
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">13</span>
+      <span class="form-8936-line-text">Tentative new clean vehicle credit (from Part I)</span>
+      <span class="form-8936-line-box">13</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">14</span>
+      <span class="form-8936-line-text">Tax liability limitation for new vehicle credit</span>
+      <span class="form-8936-line-box">14</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% if fields|get_item:'14'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">15</span>
+      <span class="form-8936-line-text"><strong>New clean vehicle credit.</strong> Enter the smaller of line 13 or line 14</span>
+      <span class="form-8936-line-box">15</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% if fields|get_item:'15'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">16</span>
+      <span class="form-8936-line-text">Tentative used clean vehicle credit (from Part I)</span>
+      <span class="form-8936-line-box">16</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">17</span>
+      <span class="form-8936-line-text">Tax liability limitation for used vehicle credit. Subtract line 15 from line 14</span>
+      <span class="form-8936-line-box">17</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}" {% if fields|get_item:'17'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line">
+      <span class="form-8936-line-num">18</span>
+      <span class="form-8936-line-text"><strong>Used clean vehicle credit.</strong> Enter the smaller of line 16 or line 17</span>
+      <span class="form-8936-line-box">18</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}" {% if fields|get_item:'18'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8936-form-line form-8936-total-line">
+      <span class="form-8936-line-num">19</span>
+      <span class="form-8936-line-text"><strong>Total clean vehicle credit.</strong> Add lines 15 and 18. Report this amount on Schedule 3 (Form 1040), line 6e</span>
+      <span class="form-8936-line-box">19</span>
+      <input type="text" class="form-8936-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8936-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 37721Q
+    </div>
+    <div>
+      <strong>Form 8936 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

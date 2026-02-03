@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8888 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8888.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8888-container">
+  <div class="form-8888-top-header">
+    <div class="form-8888-top-left">
+      <div class="form-8888-form-label">Form 8888</div>
+      <div class="form-8888-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8888-top-center">
+      <div class="form-8888-main-title">Allocation of Refund</div>
+      <div class="form-8888-subtitle">(Including Savings Bond Purchases)</div>
+      <div class="form-8888-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8888" target="_blank">www.irs.gov/Form8888</a> for instructions and the latest information.</strong></div>
+      <div class="form-8888-attach-note"><strong>▶ Attach to your income tax return.</strong></div>
+    </div>
+    <div class="form-8888-top-right">
+      <div class="form-8888-omb-line">OMB No. 1545-0074</div>
+      <div class="form-8888-year-large">{{ year }}</div>
+      <div class="form-8888-attachment">Attachment<br>Sequence No. <strong>999</strong></div>
+    </div>
+  </div>
+
+  <div class="form-8888-name-row">
+    <div class="form-8888-name-box" style="flex: 3;">
+      <div class="form-8888-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8888-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8888-ssn-box">
+      <div class="form-8888-name-label">Your social security number</div>
+      <input type="text" class="form-8888-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8888-note">
+    <strong>Caution:</strong> Don't use this form if you are requesting your refund be directly deposited to only one account (instead, see the instructions for the direct deposit line on your tax return) or if you purchased U.S. savings bonds with your refund but want the remaining amount deposited to only one account.
+  </div>
+
+  <div class="form-8888-part-header">
+    Part I - Direct Deposit
+  </div>
+
+  <div class="form-8888-section">
+    <div class="form-8888-account-box">
+      <div class="form-8888-account-title">Account 1</div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">1a</span>
+        <span class="form-8888-line-text">Amount to be deposited</span>
+        <span class="form-8888-line-box">1a</span>
+        <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">1b</span>
+        <span class="form-8888-line-text">Routing number</span>
+        <input type="text" class="form-8888-line-input routing-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}" maxlength="9" placeholder="9 digits">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">1c</span>
+        <span class="form-8888-line-text">Account type</span>
+        <div class="form-8888-account-type">
+          <label><input type="radio" name="{{ fields|get_item:'1c'|field_id }}" value="checking" {% if fields|get_item:'1c'|field_value == 'checking' %}checked{% endif %}> Checking</label>
+          <label><input type="radio" name="{{ fields|get_item:'1c'|field_id }}" value="savings" {% if fields|get_item:'1c'|field_value == 'savings' %}checked{% endif %}> Savings</label>
+        </div>
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">1d</span>
+        <span class="form-8888-line-text">Account number</span>
+        <input type="text" class="form-8888-line-input account-input" name="{{ fields|get_item:'1d'|field_id }}" value="{{ fields|get_item:'1d'|field_value|default:'' }}" maxlength="17">
+      </div>
+    </div>
+
+    <div class="form-8888-account-box">
+      <div class="form-8888-account-title">Account 2</div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">2a</span>
+        <span class="form-8888-line-text">Amount to be deposited</span>
+        <span class="form-8888-line-box">2a</span>
+        <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">2b</span>
+        <span class="form-8888-line-text">Routing number</span>
+        <input type="text" class="form-8888-line-input routing-input" name="{{ fields|get_item:'2b'|field_id }}" value="{{ fields|get_item:'2b'|field_value|default:'' }}" maxlength="9" placeholder="9 digits">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">2c</span>
+        <span class="form-8888-line-text">Account type</span>
+        <div class="form-8888-account-type">
+          <label><input type="radio" name="{{ fields|get_item:'2c'|field_id }}" value="checking" {% if fields|get_item:'2c'|field_value == 'checking' %}checked{% endif %}> Checking</label>
+          <label><input type="radio" name="{{ fields|get_item:'2c'|field_id }}" value="savings" {% if fields|get_item:'2c'|field_value == 'savings' %}checked{% endif %}> Savings</label>
+        </div>
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">2d</span>
+        <span class="form-8888-line-text">Account number</span>
+        <input type="text" class="form-8888-line-input account-input" name="{{ fields|get_item:'2d'|field_id }}" value="{{ fields|get_item:'2d'|field_value|default:'' }}" maxlength="17">
+      </div>
+    </div>
+
+    <div class="form-8888-account-box">
+      <div class="form-8888-account-title">Account 3</div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">3a</span>
+        <span class="form-8888-line-text">Amount to be deposited</span>
+        <span class="form-8888-line-box">3a</span>
+        <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'3a'|field_id }}" value="{{ fields|get_item:'3a'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">3b</span>
+        <span class="form-8888-line-text">Routing number</span>
+        <input type="text" class="form-8888-line-input routing-input" name="{{ fields|get_item:'3b'|field_id }}" value="{{ fields|get_item:'3b'|field_value|default:'' }}" maxlength="9" placeholder="9 digits">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">3c</span>
+        <span class="form-8888-line-text">Account type</span>
+        <div class="form-8888-account-type">
+          <label><input type="radio" name="{{ fields|get_item:'3c'|field_id }}" value="checking" {% if fields|get_item:'3c'|field_value == 'checking' %}checked{% endif %}> Checking</label>
+          <label><input type="radio" name="{{ fields|get_item:'3c'|field_id }}" value="savings" {% if fields|get_item:'3c'|field_value == 'savings' %}checked{% endif %}> Savings</label>
+        </div>
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">3d</span>
+        <span class="form-8888-line-text">Account number</span>
+        <input type="text" class="form-8888-line-input account-input" name="{{ fields|get_item:'3d'|field_id }}" value="{{ fields|get_item:'3d'|field_value|default:'' }}" maxlength="17">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-8888-part-header">
+    Part II - U.S. Series I Savings Bond Purchases
+  </div>
+
+  <div class="form-8888-section">
+    <div class="form-8888-form-line">
+      <span class="form-8888-line-num">4</span>
+      <span class="form-8888-line-text">Amount to be used to buy bonds for yourself (and spouse if filing jointly)</span>
+      <span class="form-8888-line-box">4</span>
+      <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8888-account-box">
+      <div class="form-8888-account-title">Bond Purchase 1 (for someone other than yourself or spouse)</div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">5a</span>
+        <span class="form-8888-line-text">Amount</span>
+        <span class="form-8888-line-box">5a</span>
+        <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'5a'|field_id }}" value="{{ fields|get_item:'5a'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">5b</span>
+        <span class="form-8888-line-text">Owner's name (First Last)</span>
+        <input type="text" class="form-8888-line-input name-input" name="{{ fields|get_item:'5b'|field_id }}" value="{{ fields|get_item:'5b'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">5c</span>
+        <span class="form-8888-line-text">Co-owner or beneficiary name (First Last)</span>
+        <input type="text" class="form-8888-line-input name-input" name="{{ fields|get_item:'5c'|field_id }}" value="{{ fields|get_item:'5c'|field_value|default:'' }}">
+      </div>
+    </div>
+
+    <div class="form-8888-account-box">
+      <div class="form-8888-account-title">Bond Purchase 2 (for someone other than yourself or spouse)</div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">6a</span>
+        <span class="form-8888-line-text">Amount</span>
+        <span class="form-8888-line-box">6a</span>
+        <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'6a'|field_id }}" value="{{ fields|get_item:'6a'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">6b</span>
+        <span class="form-8888-line-text">Owner's name (First Last)</span>
+        <input type="text" class="form-8888-line-input name-input" name="{{ fields|get_item:'6b'|field_id }}" value="{{ fields|get_item:'6b'|field_value|default:'' }}">
+      </div>
+      <div class="form-8888-form-line">
+        <span class="form-8888-line-num">6c</span>
+        <span class="form-8888-line-text">Co-owner or beneficiary name (First Last)</span>
+        <input type="text" class="form-8888-line-input name-input" name="{{ fields|get_item:'6c'|field_id }}" value="{{ fields|get_item:'6c'|field_value|default:'' }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-8888-part-header">
+    Part III - Paper Check
+  </div>
+
+  <div class="form-8888-section">
+    <div class="form-8888-form-line form-8888-total-line">
+      <span class="form-8888-line-num">7</span>
+      <span class="form-8888-line-text"><strong>Amount to be refunded by check</strong></span>
+      <span class="form-8888-line-box">7</span>
+      <input type="text" class="form-8888-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-8888-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 62302R
+    </div>
+    <div>
+      <strong>Form 8888 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

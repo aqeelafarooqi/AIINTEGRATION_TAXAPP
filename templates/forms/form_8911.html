@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8911 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8911.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8911-container">
+  <div class="form-8911-top-header">
+    <div class="form-8911-top-left">
+      <div class="form-8911-form-label">Form 8911</div>
+      <div class="form-8911-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8911-top-center">
+      <div class="form-8911-main-title">Alternative Fuel Vehicle Refueling Property Credit</div>
+      <div class="form-8911-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8911" target="_blank">www.irs.gov/Form8911</a> for instructions and the latest information.</strong></div>
+      <div class="form-8911-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+    </div>
+    <div class="form-8911-top-right">
+      <div class="form-8911-omb-line">OMB No. 1545-2137</div>
+      <div class="form-8911-year-large">{{ year }}</div>
+      <div class="form-8911-attachment">Attachment<br>Sequence No. <strong>85</strong></div>
+    </div>
+  </div>
+
+  <div class="form-8911-name-row">
+    <div class="form-8911-name-box" style="flex: 3;">
+      <div class="form-8911-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8911-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8911-ssn-box">
+      <div class="form-8911-name-label">Identifying number</div>
+      <input type="text" class="form-8911-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8911-note">
+    <strong>Note:</strong> Use a separate Schedule A (Form 8911) for each qualified alternative fuel vehicle refueling property.
+  </div>
+
+  <div class="form-8911-section">
+    <div class="form-8911-form-line">
+      <span class="form-8911-line-num">A</span>
+      <span class="form-8911-line-text">Total qualified alternative fuel vehicle refueling properties (number of Schedule A forms attached)</span>
+      <span class="form-8911-line-box">A</span>
+      <input type="text" class="form-8911-line-input" name="{{ fields|get_item:'A'|field_id }}" value="{{ fields|get_item:'A'|field_value|default:'' }}" style="width: 60px; text-align: center;">
+    </div>
+  </div>
+
+  <div class="form-8911-part-header">
+    Part I - Total Business/Investment Use Part of Credit
+  </div>
+
+  <div class="form-8911-section">
+    <div class="form-8911-form-line">
+      <span class="form-8911-line-num">1</span>
+      <span class="form-8911-line-text">Business/investment use part of credit from Schedule A (Form 8911), line 16 (see instructions if more than one property)</span>
+      <span class="form-8911-line-box">1</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8911-form-line">
+      <span class="form-8911-line-num">2</span>
+      <span class="form-8911-line-text">Alternative fuel vehicle refueling property credit from partnerships and S corporations</span>
+      <span class="form-8911-line-box">2</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8911-form-line form-8911-result-line">
+      <span class="form-8911-line-num">3</span>
+      <span class="form-8911-line-text"><strong>Business/investment use part of credit.</strong> Add lines 1 and 2. Report this amount on Form 3800, Part III, line 1s</span>
+      <span class="form-8911-line-box">3</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+  </div>
+
+  <div class="form-8911-part-header">
+    Part II - Total Personal Use Part of Credit
+  </div>
+
+  <div class="form-8911-section">
+    <div class="form-8911-form-line">
+      <span class="form-8911-line-num">4</span>
+      <span class="form-8911-line-text">Personal use part of credit from Schedule A (Form 8911), line 21 (see instructions if more than one property)</span>
+      <span class="form-8911-line-box">4</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">5</span>
+      <span class="form-8911-line-text">Regular tax before credits. See instructions</span>
+      <span class="form-8911-line-box">5</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">6a</span>
+      <span class="form-8911-line-text">Foreign tax credit</span>
+      <span class="form-8911-line-box">6a</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'6a'|field_id }}" value="{{ fields|get_item:'6a'|field_value|default:'' }}" {% field_readonly fields|get_item:'6a' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">6b</span>
+      <span class="form-8911-line-text">Certain allowable credits (see instructions)</span>
+      <span class="form-8911-line-box">6b</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'6b'|field_id }}" value="{{ fields|get_item:'6b'|field_value|default:'' }}" {% field_readonly fields|get_item:'6b' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">6c</span>
+      <span class="form-8911-line-text">Add lines 6a and 6b</span>
+      <span class="form-8911-line-box">6c</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'6c'|field_id }}" value="{{ fields|get_item:'6c'|field_value|default:'' }}" {% field_readonly fields|get_item:'6c' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">7</span>
+      <span class="form-8911-line-text">Net regular tax. Subtract line 6c from line 5. If zero or less, enter -0-</span>
+      <span class="form-8911-line-box">7</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">8</span>
+      <span class="form-8911-line-text">Tentative minimum tax (see instructions)</span>
+      <span class="form-8911-line-box">8</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-calc-line">
+      <span class="form-8911-line-num">9</span>
+      <span class="form-8911-line-text">Subtract line 8 from line 7. If zero or less, enter -0-</span>
+      <span class="form-8911-line-box">9</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="form-8911-form-line form-8911-result-line">
+      <span class="form-8911-line-num">10</span>
+      <span class="form-8911-line-text"><strong>Personal use part of credit.</strong> Enter the smaller of line 4 or line 9. Report this amount on Schedule 3 (Form 1040), line 6p</span>
+      <span class="form-8911-line-box">10</span>
+      <input type="text" class="form-8911-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+  </div>
+
+  <div class="form-8911-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 37709F
+    </div>
+    <div>
+      <strong>Form 8911 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

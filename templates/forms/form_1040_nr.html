@@ -1,0 +1,588 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 1040-NR - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_1040_nr.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="form-1040-nr-container">
+  <div class="form-1040-nr-top-header">
+    <div class="form-1040-nr-top-left">
+      <div class="form-1040-nr-form-label">Form 1040-NR</div>
+      <div class="form-1040-nr-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-1040-nr-top-center">
+      <div class="form-1040-nr-main-title">U.S. Nonresident Alien Income Tax Return</div>
+      <div class="form-1040-nr-attach-note"><strong>Go to <a href="https://www.irs.gov/Form1040NR" target="_blank">www.irs.gov/Form1040NR</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-1040-nr-top-right">
+      <div class="form-1040-nr-omb-line">OMB No. 1545-0074</div>
+      <div class="form-1040-nr-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-name-row">
+    <div class="form-1040-nr-name-box" style="flex: 2;">
+      <div class="form-1040-nr-name-label">Your first name and middle initial</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.middle_name|default:'' }}" readonly>
+    </div>
+    <div class="form-1040-nr-name-box" style="flex: 2;">
+      <div class="form-1040-nr-name-label">Last name</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-1040-nr-ssn-box">
+      <div class="form-1040-nr-name-label">Your identifying number (ITIN or SSN)</div>
+      <input type="text" class="form-1040-nr-name-input" name="{{ fields|get_item:'itin_or_ssn'|field_id }}" value="{{ taxpayer_obj.ssn|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-1040-nr-name-row">
+    <div class="form-1040-nr-name-box" style="flex: 3;">
+      <div class="form-1040-nr-name-label">Present home address (number, street, and apt. no., or rural route). If you have a P.O. box, see instructions.</div>
+      <input type="text" class="form-1040-nr-name-input" name="{{ fields|get_item:'name_and_address'|field_id }}" value="{{ taxpayer_obj.address|default:'' }}">
+    </div>
+    <div class="form-1040-nr-ssn-box">
+      <div class="form-1040-nr-name-label">Spouse's identifying number</div>
+      <input type="text" class="form-1040-nr-name-input" name="{{ fields|get_item:'spouse_itin_or_ssn'|field_id }}" value="{{ spouse.ssn|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-1040-nr-name-row">
+    <div class="form-1040-nr-name-box" style="flex: 2;">
+      <div class="form-1040-nr-name-label">City, town, or post office</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.city|default:'' }}" readonly>
+    </div>
+    <div class="form-1040-nr-name-box">
+      <div class="form-1040-nr-name-label">State</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.state|default:'' }}" readonly>
+    </div>
+    <div class="form-1040-nr-name-box">
+      <div class="form-1040-nr-name-label">ZIP code</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.zip_code|default:'' }}" readonly>
+    </div>
+    <div class="form-1040-nr-name-box">
+      <div class="form-1040-nr-name-label">Country</div>
+      <input type="text" class="form-1040-nr-name-input" value="{{ taxpayer_obj.country|default:'USA' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Filing Status - Check only one box
+  </div>
+
+  <div class="form-1040-nr-section form-1040-nr-filing-status">
+    <div class="form-1040-nr-form-line">
+      <label><input type="radio" name="filing_status" value="1" class="form-1040-nr-checkbox" {% if fields|get_item:'filing_status'|field_value == '1' %}checked{% endif %}> Single nonresident alien</label>
+    </div>
+    <div class="form-1040-nr-form-line">
+      <label><input type="radio" name="filing_status" value="3" class="form-1040-nr-checkbox" {% if fields|get_item:'filing_status'|field_value == '3' %}checked{% endif %}> Married nonresident alien filing separately</label>
+    </div>
+    <div class="form-1040-nr-form-line">
+      <label><input type="radio" name="filing_status" value="5" class="form-1040-nr-checkbox" {% if fields|get_item:'filing_status'|field_value == '5' %}checked{% endif %}> Qualifying surviving spouse (QSS)</label>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Income Effectively Connected With U.S. Trade or Business
+  </div>
+
+  <div class="form-1040-nr-section">
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1a</span>
+      <span class="form-1040-nr-line-text">Wages, salaries, tips, etc. Attach Form(s) W-2</span>
+      <span class="form-1040-nr-line-box">1a</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}" {% field_readonly fields|get_item:'1a' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1b</span>
+      <span class="form-1040-nr-line-text">Household employee wages not reported on Form(s) W-2</span>
+      <span class="form-1040-nr-line-box">1b</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1c</span>
+      <span class="form-1040-nr-line-text">Tip income not reported on line 1a</span>
+      <span class="form-1040-nr-line-box">1c</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1c'|field_id }}" value="{{ fields|get_item:'1c'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1d</span>
+      <span class="form-1040-nr-line-text">Medicaid waiver payments not reported on Form(s) W-2</span>
+      <span class="form-1040-nr-line-box">1d</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1d'|field_id }}" value="{{ fields|get_item:'1d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1e</span>
+      <span class="form-1040-nr-line-text">Taxable dependent care benefits from Form 2441, line 26</span>
+      <span class="form-1040-nr-line-box">1e</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1e'|field_id }}" value="{{ fields|get_item:'1e'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1f</span>
+      <span class="form-1040-nr-line-text">Employer-provided adoption benefits from Form 8839, line 29</span>
+      <span class="form-1040-nr-line-box">1f</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1f'|field_id }}" value="{{ fields|get_item:'1f'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1g</span>
+      <span class="form-1040-nr-line-text">Wages from Form 8919, line 6</span>
+      <span class="form-1040-nr-line-box">1g</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1g'|field_id }}" value="{{ fields|get_item:'1g'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1h</span>
+      <span class="form-1040-nr-line-text">Other earned income (see instructions)</span>
+      <span class="form-1040-nr-line-box">1h</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1h'|field_id }}" value="{{ fields|get_item:'1h'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1i</span>
+      <span class="form-1040-nr-line-text">Nontaxable combat pay election (see instructions)</span>
+      <span class="form-1040-nr-line-box">1i</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1i'|field_id }}" value="{{ fields|get_item:'1i'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">1k</span>
+      <span class="form-1040-nr-line-text">Treaty tax exempt U.S. source income (see Schedule OI)</span>
+      <span class="form-1040-nr-line-box">1k</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1k'|field_id }}" value="{{ fields|get_item:'1k'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">1z</span>
+      <span class="form-1040-nr-line-text"><strong>Add lines 1a through 1h.</strong> This is your total effectively connected wages</span>
+      <span class="form-1040-nr-line-box">1z</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'1z'|field_id }}" value="{{ fields|get_item:'1z'|field_value|default:'' }}" {% field_readonly fields|get_item:'1z' %}>
+    </div>
+
+    <div class="form-1040-nr-dual-line">
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">2a</span>
+        <span class="form-1040-nr-line-text">Tax-exempt interest</span>
+        <span class="form-1040-nr-line-box">2a</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}">
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">2b</span>
+        <span class="form-1040-nr-line-text">Taxable interest</span>
+        <span class="form-1040-nr-line-box">2b</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'2b'|field_id }}" value="{{ fields|get_item:'2b'|field_value|default:'' }}" {% field_readonly fields|get_item:'2b' %}>
+      </div>
+    </div>
+
+    <div class="form-1040-nr-dual-line">
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">3a</span>
+        <span class="form-1040-nr-line-text">Qualified dividends</span>
+        <span class="form-1040-nr-line-box">3a</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'3a'|field_id }}" value="{{ fields|get_item:'3a'|field_value|default:'' }}" {% field_readonly fields|get_item:'3a' %}>
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">3b</span>
+        <span class="form-1040-nr-line-text">Ordinary dividends</span>
+        <span class="form-1040-nr-line-box">3b</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'3b'|field_id }}" value="{{ fields|get_item:'3b'|field_value|default:'' }}" {% field_readonly fields|get_item:'3b' %}>
+      </div>
+    </div>
+
+    <div class="form-1040-nr-dual-line">
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">4a</span>
+        <span class="form-1040-nr-line-text">IRA distributions</span>
+        <span class="form-1040-nr-line-box">4a</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'4a'|field_id }}" value="{{ fields|get_item:'4a'|field_value|default:'' }}">
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">4b</span>
+        <span class="form-1040-nr-line-text">Taxable amount</span>
+        <span class="form-1040-nr-line-box">4b</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'4b'|field_id }}" value="{{ fields|get_item:'4b'|field_value|default:'' }}" {% field_readonly fields|get_item:'4b' %}>
+      </div>
+    </div>
+
+    <div class="form-1040-nr-dual-line">
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">5a</span>
+        <span class="form-1040-nr-line-text">Pensions and annuities</span>
+        <span class="form-1040-nr-line-box">5a</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'5a'|field_id }}" value="{{ fields|get_item:'5a'|field_value|default:'' }}">
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">5b</span>
+        <span class="form-1040-nr-line-text">Taxable amount</span>
+        <span class="form-1040-nr-line-box">5b</span>
+        <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'5b'|field_id }}" value="{{ fields|get_item:'5b'|field_value|default:'' }}" {% field_readonly fields|get_item:'5b' %}>
+      </div>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-reserved-line">
+      <span class="form-1040-nr-line-num">6</span>
+      <span class="form-1040-nr-line-text"><em>Reserved for future use</em></span>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">7</span>
+      <span class="form-1040-nr-line-text">Capital gain or (loss). Attach Schedule D if required. If not required, check here <input type="checkbox" name="{{ fields|get_item:'7_no_sched_d'|field_id }}" {% if fields|get_item:'7_no_sched_d'|field_value %}checked{% endif %}></span>
+      <span class="form-1040-nr-line-box">7</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">8</span>
+      <span class="form-1040-nr-line-text">Additional income from Schedule 1, line 10</span>
+      <span class="form-1040-nr-line-box">8</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">9</span>
+      <span class="form-1040-nr-line-text"><strong>Total income.</strong> Add lines 1z, 2b, 3b, 4b, 5b, 7, and 8</span>
+      <span class="form-1040-nr-line-box">9</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">10</span>
+      <span class="form-1040-nr-line-text">Adjustments to income from Schedule 1, line 26</span>
+      <span class="form-1040-nr-line-box">10</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">11</span>
+      <span class="form-1040-nr-line-text"><strong>Adjusted gross income.</strong> Subtract line 10 from line 9</span>
+      <span class="form-1040-nr-line-box">11</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Tax and Credits
+  </div>
+
+  <div class="form-1040-nr-section">
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">12</span>
+      <span class="form-1040-nr-line-text">Itemized deductions from Schedule A (Form 1040-NR)</span>
+      <span class="form-1040-nr-line-box">12</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">13</span>
+      <span class="form-1040-nr-line-text">Qualified business income deduction from Form 8995 or Form 8995-A</span>
+      <span class="form-1040-nr-line-box">13</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" {% field_readonly fields|get_item:'13' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">14</span>
+      <span class="form-1040-nr-line-text">Add lines 12 and 13</span>
+      <span class="form-1040-nr-line-box">14</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">15</span>
+      <span class="form-1040-nr-line-text"><strong>Taxable income.</strong> Subtract line 14 from line 11. If zero or less, enter -0-</span>
+      <span class="form-1040-nr-line-box">15</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">16</span>
+      <span class="form-1040-nr-line-text">Tax (see instructions). Check if any from: <label><input type="checkbox" name="{{ fields|get_item:'16_8814'|field_id }}" {% if fields|get_item:'16_8814'|field_value %}checked{% endif %}> Form(s) 8814</label> <label><input type="checkbox" name="{{ fields|get_item:'16_4972'|field_id }}" {% if fields|get_item:'16_4972'|field_value %}checked{% endif %}> Form 4972</label></span>
+      <span class="form-1040-nr-line-box">16</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">17</span>
+      <span class="form-1040-nr-line-text">Amount from Schedule 2, line 3</span>
+      <span class="form-1040-nr-line-box">17</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}" {% field_readonly fields|get_item:'17' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">18</span>
+      <span class="form-1040-nr-line-text"><strong>Add lines 16 and 17</strong></span>
+      <span class="form-1040-nr-line-box">18</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}" {% field_readonly fields|get_item:'18' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">19</span>
+      <span class="form-1040-nr-line-text">Credit for child and other dependents from Schedule 8812</span>
+      <span class="form-1040-nr-line-box">19</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" {% field_readonly fields|get_item:'19' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">20</span>
+      <span class="form-1040-nr-line-text">Amount from Schedule 3, line 8</span>
+      <span class="form-1040-nr-line-box">20</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}" {% field_readonly fields|get_item:'20' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">21</span>
+      <span class="form-1040-nr-line-text">Add lines 19 and 20</span>
+      <span class="form-1040-nr-line-box">21</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}" {% field_readonly fields|get_item:'21' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">22</span>
+      <span class="form-1040-nr-line-text">Subtract line 21 from line 18. If zero or less, enter -0-</span>
+      <span class="form-1040-nr-line-box">22</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'22'|field_id }}" value="{{ fields|get_item:'22'|field_value|default:'' }}" {% field_readonly fields|get_item:'22' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">23</span>
+      <span class="form-1040-nr-line-text">Other taxes, including self-employment tax, from Schedule 2, line 21</span>
+      <span class="form-1040-nr-line-box">23</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}" {% field_readonly fields|get_item:'23' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">24</span>
+      <span class="form-1040-nr-line-text"><strong>Total tax.</strong> Add lines 22 and 23</span>
+      <span class="form-1040-nr-line-box">24</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'24'|field_id }}" value="{{ fields|get_item:'24'|field_value|default:'' }}" {% field_readonly fields|get_item:'24' %}>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Payments
+  </div>
+
+  <div class="form-1040-nr-section">
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">25a</span>
+      <span class="form-1040-nr-line-text">Federal income tax withheld from Forms W-2 and 1099</span>
+      <span class="form-1040-nr-line-box">25a</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'25a'|field_id }}" value="{{ fields|get_item:'25a'|field_value|default:'' }}" {% field_readonly fields|get_item:'25a' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">25b</span>
+      <span class="form-1040-nr-line-text">Tax withheld from Form 1042-S</span>
+      <span class="form-1040-nr-line-box">25b</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'25b'|field_id }}" value="{{ fields|get_item:'25b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">25c</span>
+      <span class="form-1040-nr-line-text">Tax withheld from Form 8805</span>
+      <span class="form-1040-nr-line-box">25c</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'25c'|field_id }}" value="{{ fields|get_item:'25c'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">25d</span>
+      <span class="form-1040-nr-line-text">Tax withheld from Form 8288-A</span>
+      <span class="form-1040-nr-line-box">25d</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'25d'|field_id }}" value="{{ fields|get_item:'25d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">25e</span>
+      <span class="form-1040-nr-line-text"><strong>Add lines 25a through 25d</strong></span>
+      <span class="form-1040-nr-line-box">25e</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'25e'|field_id }}" value="{{ fields|get_item:'25e'|field_value|default:'' }}" {% field_readonly fields|get_item:'25e' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">26</span>
+      <span class="form-1040-nr-line-text">{{ year }} estimated tax payments and amount applied from {{ year|add:"-1" }} return</span>
+      <span class="form-1040-nr-line-box">26</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'26'|field_id }}" value="{{ fields|get_item:'26'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">27</span>
+      <span class="form-1040-nr-line-text">Amount from Schedule 3, line 15</span>
+      <span class="form-1040-nr-line-box">27</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'27'|field_id }}" value="{{ fields|get_item:'27'|field_value|default:'' }}" {% field_readonly fields|get_item:'27' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line form-1040-nr-total-line">
+      <span class="form-1040-nr-line-num">28</span>
+      <span class="form-1040-nr-line-text"><strong>Total payments.</strong> Add lines 25e, 26, and 27</span>
+      <span class="form-1040-nr-line-box">28</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'28'|field_id }}" value="{{ fields|get_item:'28'|field_value|default:'' }}" {% field_readonly fields|get_item:'28' %}>
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Refund
+  </div>
+
+  <div class="form-1040-nr-section">
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">29</span>
+      <span class="form-1040-nr-line-text">If line 28 is more than line 24, subtract line 24 from line 28. This is the amount you <strong>overpaid</strong></span>
+      <span class="form-1040-nr-line-box">29</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'29'|field_id }}" value="{{ fields|get_item:'29'|field_value|default:'' }}" {% field_readonly fields|get_item:'29' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">30a</span>
+      <span class="form-1040-nr-line-text">Amount of line 29 you want <strong>refunded to you</strong></span>
+      <span class="form-1040-nr-line-box">30a</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'30a'|field_id }}" value="{{ fields|get_item:'30a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-1040-nr-bank-info">
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">30b</span>
+        <span class="form-1040-nr-line-text">Routing number</span>
+        <input type="text" class="form-1040-nr-bank-input" name="{{ fields|get_item:'30b'|field_id }}" value="{{ fields|get_item:'30b'|field_value|default:'' }}" maxlength="9" placeholder="9 digits">
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">30c</span>
+        <span class="form-1040-nr-line-text">Type:</span>
+        <label><input type="radio" name="{{ fields|get_item:'30c'|field_id }}" value="checking" {% if fields|get_item:'30c'|field_value == 'checking' %}checked{% endif %}> Checking</label>
+        <label><input type="radio" name="{{ fields|get_item:'30c'|field_id }}" value="savings" {% if fields|get_item:'30c'|field_value == 'savings' %}checked{% endif %}> Savings</label>
+      </div>
+      <div class="form-1040-nr-form-line">
+        <span class="form-1040-nr-line-num">30d</span>
+        <span class="form-1040-nr-line-text">Account number</span>
+        <input type="text" class="form-1040-nr-bank-input" name="{{ fields|get_item:'30d'|field_id }}" value="{{ fields|get_item:'30d'|field_value|default:'' }}" maxlength="17">
+      </div>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">31</span>
+      <span class="form-1040-nr-line-text">Amount of line 29 you want <strong>applied to your {{ year|add:"1" }} estimated tax</strong></span>
+      <span class="form-1040-nr-line-box">31</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'31'|field_id }}" value="{{ fields|get_item:'31'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-1040-nr-part-header">
+    Amount You Owe
+  </div>
+
+  <div class="form-1040-nr-section">
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">32</span>
+      <span class="form-1040-nr-line-text"><strong>Amount you owe.</strong> Subtract line 28 from line 24</span>
+      <span class="form-1040-nr-line-box">32</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'32'|field_id }}" value="{{ fields|get_item:'32'|field_value|default:'' }}" {% field_readonly fields|get_item:'32' %}>
+    </div>
+
+    <div class="form-1040-nr-form-line">
+      <span class="form-1040-nr-line-num">33</span>
+      <span class="form-1040-nr-line-text">Estimated tax penalty (see instructions)</span>
+      <span class="form-1040-nr-line-box">33</span>
+      <input type="text" class="form-1040-nr-line-input irs-line-input" name="{{ fields|get_item:'33'|field_id }}" value="{{ fields|get_item:'33'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-1040-nr-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 11364D
+    </div>
+    <div>
+      <strong>Form 1040-NR ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

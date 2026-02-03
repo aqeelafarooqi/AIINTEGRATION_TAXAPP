@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule 3 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_3.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="schedule-3-container">
+  <!-- Header -->
+  <div class="schedule-3-top-header">
+    <div class="schedule-3-top-left">
+      <div class="schedule-3-form-label">SCHEDULE 3</div>
+      <div class="schedule-3-form-number">(Form 1040)</div>
+      <div class="schedule-3-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-3-top-center">
+      <div class="schedule-3-main-title">Additional Credits and Payments</div>
+      <div class="schedule-3-attach-note"><strong>Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="schedule-3-web-link"><strong>Go to <a href="https://www.irs.gov/Form1040" target="_blank">www.irs.gov/Form1040</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-3-top-right">
+      <div class="schedule-3-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-3-year-large">{{ year }}</div>
+      <div class="schedule-3-attachment">Attachment<br>Sequence No. <strong>03</strong></div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="schedule-3-name-row">
+    <div class="schedule-3-name-label">
+      <strong>Name(s) shown on Form 1040, 1040-SR, or 1040-NR</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+          and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="schedule-3-ssn-box">
+      <strong>Your social security number</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Main form table -->
+  <table class="schedule-3-main-table">
+    <tr>
+      <td class="schedule-3-left-column">
+        <div class="schedule-3-section-header">Part I<br>Nonrefundable<br>Credits</div>
+      </td>
+      <td class="schedule-3-middle-column">
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">1</span>
+          <span class="schedule-3-line-text">Foreign tax credit. Attach Form 1116 if required <span class="schedule-3-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">1</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}"{% field_readonly fields|get_item:'1' %} {% field_disabled fields|get_item:'1' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">2</span>
+          <span class="schedule-3-line-text">Credit for child and dependent care expenses from Form 2441, line 11. Attach Form 2441 <span class="schedule-3-dots">. .</span></span>
+          <span class="schedule-3-line-box">2</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}"{% field_readonly fields|get_item:'2' %} {% field_disabled fields|get_item:'2' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">3</span>
+          <span class="schedule-3-line-text">Education credits from Form 8863, line 19 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">3</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}"{% field_readonly fields|get_item:'3' %} {% field_disabled fields|get_item:'3' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">4</span>
+          <span class="schedule-3-line-text">Retirement savings contributions credit. Attach Form 8880 <span class="schedule-3-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">4</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}"{% field_readonly fields|get_item:'4' %} {% field_disabled fields|get_item:'4' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">5</span>
+          <span class="schedule-3-line-text">Residential clean energy credit from Form 5695, line 15 <span class="schedule-3-dots">. . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">5</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}"{% field_readonly fields|get_item:'5' %} {% field_disabled fields|get_item:'5' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">6</span>
+          <span class="schedule-3-line-text">Energy efficient home improvement credit from Form 5695, line 32 <span class="schedule-3-dots">. . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">6</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}"{% field_readonly fields|get_item:'6' %} {% field_disabled fields|get_item:'6' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">7</span>
+          <span class="schedule-3-line-text">Other nonrefundable credits:</span>
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">a</span>
+          <span class="schedule-3-line-text">General business credit. Attach Form 3800 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7a</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7a'|field_id }}" value="{{ fields|get_item:'7a'|field_value|default:'' }}"{% field_readonly fields|get_item:'7a' %} {% field_disabled fields|get_item:'7a' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">b</span>
+          <span class="schedule-3-line-text">Credit for prior year minimum tax. Attach Form 8801 <span class="schedule-3-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7b</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7b'|field_id }}" value="{{ fields|get_item:'7b'|field_value|default:'' }}"{% field_readonly fields|get_item:'7b' %} {% field_disabled fields|get_item:'7b' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">c</span>
+          <span class="schedule-3-line-text">Adoption credit. Attach Form 8839 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7c</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7c'|field_id }}" value="{{ fields|get_item:'7c'|field_value|default:'' }}"{% field_readonly fields|get_item:'7c' %} {% field_disabled fields|get_item:'7c' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">d</span>
+          <span class="schedule-3-line-text">Credit for the elderly or the disabled. Attach Schedule R <span class="schedule-3-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7d</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7d'|field_id }}" value="{{ fields|get_item:'7d'|field_value|default:'' }}"{% field_readonly fields|get_item:'7d' %} {% field_disabled fields|get_item:'7d' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">e</span>
+          <span class="schedule-3-line-text">Alternative motor vehicle credit. Attach Form 8910 <span class="schedule-3-dots">. . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7e</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7e'|field_id }}" value="{{ fields|get_item:'7e'|field_value|default:'' }}"{% field_readonly fields|get_item:'7e' %} {% field_disabled fields|get_item:'7e' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">f</span>
+          <span class="schedule-3-line-text">Qualified plug-in motor vehicle credit. Attach Form 8936 <span class="schedule-3-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7f</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7f'|field_id }}" value="{{ fields|get_item:'7f'|field_value|default:'' }}"{% field_readonly fields|get_item:'7f' %} {% field_disabled fields|get_item:'7f' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">g</span>
+          <span class="schedule-3-line-text">Mortgage interest credit. Attach Form 8396 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7g</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7g'|field_id }}" value="{{ fields|get_item:'7g'|field_value|default:'' }}"{% field_readonly fields|get_item:'7g' %} {% field_disabled fields|get_item:'7g' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">h</span>
+          <span class="schedule-3-line-text">District of Columbia first-time homebuyer credit. Attach Form 8859 <span class="schedule-3-dots">. . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7h</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7h'|field_id }}" value="{{ fields|get_item:'7h'|field_value|default:'' }}"{% field_readonly fields|get_item:'7h' %} {% field_disabled fields|get_item:'7h' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">i</span>
+          <span class="schedule-3-line-text">Qualified electric vehicle credit. Attach Form 8834 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7i</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7i'|field_id }}" value="{{ fields|get_item:'7i'|field_value|default:'' }}"{% field_readonly fields|get_item:'7i' %} {% field_disabled fields|get_item:'7i' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">k</span>
+          <span class="schedule-3-line-text">Credit for clean vehicle. Attach Form 8936, Part II <span class="schedule-3-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7k</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7k'|field_id }}" value="{{ fields|get_item:'7k'|field_value|default:'' }}"{% field_readonly fields|get_item:'7k' %} {% field_disabled fields|get_item:'7k' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">l</span>
+          <span class="schedule-3-line-text">Previously-owned clean vehicle credit. Attach Form 8936, Part III <span class="schedule-3-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">7l</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7l'|field_id }}" value="{{ fields|get_item:'7l'|field_value|default:'' }}"{% field_readonly fields|get_item:'7l' %} {% field_disabled fields|get_item:'7l' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">z</span>
+          <span class="schedule-3-line-text">Other nonrefundable credits. List type and amount: <span class="schedule-3-underline">_______________</span></span>
+          <span class="schedule-3-line-box">7z</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'7z'|field_id }}" value="{{ fields|get_item:'7z'|field_value|default:'' }}"{% field_readonly fields|get_item:'7z' %} {% field_disabled fields|get_item:'7z' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">8</span>
+          <span class="schedule-3-line-text"><strong>Total other nonrefundable credits. Add lines 7a through 7z</strong> <span class="schedule-3-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">8</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}"{% field_readonly fields|get_item:'8' %} {% field_disabled fields|get_item:'8' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-total-line">
+          <span class="schedule-3-line-num">9</span>
+          <span class="schedule-3-line-text"><strong>Add lines 1 through 6 and 8. Enter here and on Form 1040, 1040-SR, or 1040-NR, line 20</strong></span>
+          <span class="schedule-3-line-box">9</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}"{% field_readonly fields|get_item:'9' %} {% field_disabled fields|get_item:'9' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-3-left-column">
+        <div class="schedule-3-section-header">Part II<br>Other<br>Payments<br>and<br>Refundable<br>Credits</div>
+      </td>
+      <td class="schedule-3-middle-column">
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">10</span>
+          <span class="schedule-3-line-text">Net premium tax credit. Attach Form 8962 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">10</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}"{% field_readonly fields|get_item:'10' %} {% field_disabled fields|get_item:'10' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">11</span>
+          <span class="schedule-3-line-text">Amount paid with request for extension to file (see instructions) <span class="schedule-3-dots">. . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">11</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}"{% field_readonly fields|get_item:'11' %} {% field_disabled fields|get_item:'11' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">12</span>
+          <span class="schedule-3-line-text">Excess social security and tier 1 RRTA tax withheld <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">12</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}"{% field_readonly fields|get_item:'12' %} {% field_disabled fields|get_item:'12' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">13</span>
+          <span class="schedule-3-line-text">Credit for federal tax on fuels. Attach Form 4136 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">13</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}"{% field_readonly fields|get_item:'13' %} {% field_disabled fields|get_item:'13' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">14</span>
+          <span class="schedule-3-line-text">Other payments or refundable credits:</span>
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">a</span>
+          <span class="schedule-3-line-text">Form 2439 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14a</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14a'|field_id }}" value="{{ fields|get_item:'14a'|field_value|default:'' }}"{% field_readonly fields|get_item:'14a' %} {% field_disabled fields|get_item:'14a' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">b</span>
+          <span class="schedule-3-line-text">Qualified sick and family leave credits from Schedule(s) H and Form(s) 7202 for leave taken before April 1, 2021 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14b</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14b'|field_id }}" value="{{ fields|get_item:'14b'|field_value|default:'' }}"{% field_readonly fields|get_item:'14b' %} {% field_disabled fields|get_item:'14b' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">c</span>
+          <span class="schedule-3-line-text">Health coverage tax credit from Form 8885 <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14c</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14c'|field_id }}" value="{{ fields|get_item:'14c'|field_value|default:'' }}"{% field_readonly fields|get_item:'14c' %} {% field_disabled fields|get_item:'14c' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">d</span>
+          <span class="schedule-3-line-text">Credit for repayment of amounts included in income from earlier years <span class="schedule-3-dots">. . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14d</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14d'|field_id }}" value="{{ fields|get_item:'14d'|field_value|default:'' }}"{% field_readonly fields|get_item:'14d' %} {% field_disabled fields|get_item:'14d' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">e</span>
+          <span class="schedule-3-line-text">Reserved for future use <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14e</span>
+          <input type="text" class="schedule-3-line-input schedule-3-gray-field" value="" readonly>
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">f</span>
+          <span class="schedule-3-line-text">Deferred amount of net 965 tax liability (see instructions) <span class="schedule-3-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14f</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14f'|field_id }}" value="{{ fields|get_item:'14f'|field_value|default:'' }}"{% field_readonly fields|get_item:'14f' %} {% field_disabled fields|get_item:'14f' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">g</span>
+          <span class="schedule-3-line-text">Reserved for future use <span class="schedule-3-dots">. . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-3-line-box">14g</span>
+          <input type="text" class="schedule-3-line-input schedule-3-gray-field" value="" readonly>
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-indent">
+          <span class="schedule-3-line-num">z</span>
+          <span class="schedule-3-line-text">Other payments or refundable credits. List type and amount: <span class="schedule-3-underline">__________</span></span>
+          <span class="schedule-3-line-box">14z</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'14z'|field_id }}" value="{{ fields|get_item:'14z'|field_value|default:'' }}"{% field_readonly fields|get_item:'14z' %} {% field_disabled fields|get_item:'14z' %} >
+        </div>
+
+        <div class="schedule-3-form-line">
+          <span class="schedule-3-line-num">15</span>
+          <span class="schedule-3-line-text"><strong>Total other payments or refundable credits. Add lines 14a through 14z</strong> <span class="schedule-3-dots">. . . . . . .</span></span>
+          <span class="schedule-3-line-box">15</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}"{% field_readonly fields|get_item:'15' %} {% field_disabled fields|get_item:'15' %} >
+        </div>
+
+        <div class="schedule-3-form-line schedule-3-total-line">
+          <span class="schedule-3-line-num">16</span>
+          <span class="schedule-3-line-text"><strong>Add lines 10 through 13 and 15. Enter here and on Form 1040, 1040-SR, or 1040-NR, line 31</strong></span>
+          <span class="schedule-3-line-box">16</span>
+          <input type="text" class="schedule-3-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}"{% field_readonly fields|get_item:'16' %} {% field_disabled fields|get_item:'16' %} >
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="schedule-3-footer">
+    <div class="schedule-3-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div class="schedule-3-footer-center">
+      Cat. No. 71480H
+    </div>
+    <div class="schedule-3-footer-right">
+      <strong>Schedule 3 (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule E - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_e.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="schedule-e-container">
+  <div class="schedule-e-top-header">
+    <div class="schedule-e-top-left">
+      <div class="schedule-e-form-label">SCHEDULE E</div>
+      <div class="schedule-e-form-number">(Form 1040)</div>
+      <div class="schedule-e-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-e-top-center">
+      <div class="schedule-e-main-title">Supplemental Income and Loss</div>
+      <div class="schedule-e-subtitle">(From rental real estate, royalties, partnerships, S corporations, estates, trusts, REMICs, etc.)</div>
+      <div class="schedule-e-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, 1040-NR, or 1041.</strong></div>
+      <div class="schedule-e-web-link"><strong>▶ Go to <a href="https://www.irs.gov/ScheduleE" target="_blank">www.irs.gov/ScheduleE</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-e-top-right">
+      <div class="schedule-e-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-e-year-large">{{ year }}</div>
+      <div class="schedule-e-attachment">Attachment<br>Sequence No. <strong>13</strong></div>
+      <div class="schedule-e-ssn-label">Your social security number</div>
+    </div>
+  </div>
+
+  <div class="schedule-e-name-row">
+    <div class="schedule-e-name-label">
+      <strong>Name(s) shown on return</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+          and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="schedule-e-ssn-box">
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <table class="schedule-e-main-table">
+    <tr>
+      <td class="schedule-e-left-column">
+        <div class="schedule-e-section-header">Part I<br>Income or Loss<br>From Rental<br>Real Estate<br>and Royalties</div>
+      </td>
+      <td class="schedule-e-middle-column">
+        {% for line_num in "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23a 23b 23c 23d 23e 24 25 26"|split:" " %}
+          {% with field=fields|get_item:line_num %}
+            {% if field %}
+              <div class="schedule-e-form-line">
+                <span class="schedule-e-line-num">{{ line_num }}</span>
+                <span class="schedule-e-line-text">{{ field.label|default:""|safe }}</span>
+                <input type="text" class="schedule-e-line-input irs-line-input" value="{{ field|field_value|default:'' }}" {% field_readonly field %} {% field_disabled field %}>
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </td>
+    </tr>
+  </table>
+
+  <div class="schedule-e-footer">
+    <div class="schedule-e-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see the separate instructions.</strong>
+    </div>
+    <div class="schedule-e-footer-center">
+      Cat. No. 11344L
+    </div>
+    <div class="schedule-e-footer-right">
+      <strong>Schedule E (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

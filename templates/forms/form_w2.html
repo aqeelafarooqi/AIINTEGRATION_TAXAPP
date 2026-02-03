@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form W-2 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<style>
+  {% inline_static 'css/form_w2.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+
+{% if taxpayer %}
+  <form name="form" action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% else %}
+  <form name="form" action="/api/v1/taxpayer/self/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% endif %}
+{% csrf_token %}
+
+<div class="w2-container">
+  <div class="w2-top-header">
+    <div class="w2-ssn-box">
+      <div class="w2-letter-label"><span class="w2-letter">a</span> Employee's social security number</div>
+      <input type="text" class="w2-input" name="{{ fields|get_item:'a'|field_id }}" value="{{ fields|get_item:'a'|field_value|default:'' }}">
+    </div>
+    <div class="w2-right-header">
+      <div class="w2-official-title">For Official Use Only</div>
+      <div class="w2-omb">OMB No. 1545-0008</div>
+      <div class="w2-year">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="w2-body">
+    <div class="w2-left-column">
+      <div class="w2-letter-box">
+        <div class="w2-letter-label"><span class="w2-letter">b</span> Employer identification number (EIN)</div>
+        <input type="text" class="w2-input" name="{{ fields|get_item:'b'|field_id }}" value="{{ fields|get_item:'b'|field_value|default:'' }}">
+      </div>
+
+      <div class="w2-letter-box">
+        <div class="w2-letter-label"><span class="w2-letter">c</span> Employer's name, address, and ZIP code</div>
+        <textarea class="w2-textarea" name="{{ fields|get_item:'c'|field_id }}">{{ fields|get_item:'c'|field_value|default:'' }}</textarea>
+      </div>
+
+      <div class="w2-letter-box">
+        <div class="w2-letter-label"><span class="w2-letter">d</span> Control number</div>
+        <input type="text" class="w2-input" name="{{ fields|get_item:'d'|field_id }}" value="{{ fields|get_item:'d'|field_value|default:'' }}">
+      </div>
+
+      <div class="w2-letter-box">
+        <div class="w2-letter-label"><span class="w2-letter">e</span> Employee's name</div>
+        <textarea class="w2-textarea" name="{{ fields|get_item:'e'|field_id }}">{{ fields|get_item:'e'|field_value|default:'' }}</textarea>
+      </div>
+
+      <div class="w2-letter-box">
+        <div class="w2-letter-label"><span class="w2-letter">f</span> Employee's address and ZIP code</div>
+        <textarea class="w2-textarea" name="{{ fields|get_item:'f'|field_id }}">{{ fields|get_item:'f'|field_value|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <div class="w2-right-column">
+      <div class="w2-number-grid">
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">1</span> Wages, tips, other compensation</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">2</span> Federal income tax withheld</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">3</span> Social security wages</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">4</span> Social security tax withheld</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">5</span> Medicare wages and tips</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">6</span> Medicare tax withheld</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">7</span> Social security tips</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">8</span> Allocated tips</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box w2-highlight">
+          <div class="w2-number-label"><span class="w2-number">9</span> Verification code</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">10</span> Dependent care benefits</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+        </div>
+        <div class="w2-number-box">
+          <div class="w2-number-label"><span class="w2-number">11</span> Nonqualified plans</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}">
+        </div>
+
+        <div class="w2-number-box w2-span-2">
+          <div class="w2-number-label"><span class="w2-number">12</span> See instructions for box 12</div>
+          <div class="w2-box12-grid">
+            <div class="w2-box12">
+              <span class="w2-number">12a</span>
+              <input type="text" class="w2-input" name="{{ fields|get_item:'12a'|field_id }}" value="{{ fields|get_item:'12a'|field_value|default:'' }}">
+            </div>
+            <div class="w2-box12">
+              <span class="w2-number">12b</span>
+              <input type="text" class="w2-input" name="{{ fields|get_item:'12b'|field_id }}" value="{{ fields|get_item:'12b'|field_value|default:'' }}">
+            </div>
+            <div class="w2-box12">
+              <span class="w2-number">12c</span>
+              <input type="text" class="w2-input" name="{{ fields|get_item:'12c'|field_id }}" value="{{ fields|get_item:'12c'|field_value|default:'' }}">
+            </div>
+            <div class="w2-box12">
+              <span class="w2-number">12d</span>
+              <input type="text" class="w2-input" name="{{ fields|get_item:'12d'|field_id }}" value="{{ fields|get_item:'12d'|field_value|default:'' }}">
+            </div>
+          </div>
+        </div>
+
+        <div class="w2-number-box w2-span-2">
+          <div class="w2-number-label"><span class="w2-number">13</span> Checkboxes</div>
+          <div class="w2-checkbox-row">
+            <label><input type="checkbox" disabled> Statutory employee</label>
+            <label><input type="checkbox" disabled> Retirement plan</label>
+            <label><input type="checkbox" disabled> Third-party sick pay</label>
+          </div>
+        </div>
+
+        <div class="w2-number-box w2-span-2">
+          <div class="w2-number-label"><span class="w2-number">14</span> Other</div>
+          <input type="text" class="w2-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}">
+        </div>
+      </div>
+
+      <div class="w2-state-grid">
+        <div class="w2-state-header">
+          <span class="w2-number">15</span> State | Employer's state ID number
+        </div>
+        <div class="w2-state-header">
+          <span class="w2-number">16</span> State wages, tips, etc.
+        </div>
+        <div class="w2-state-header">
+          <span class="w2-number">17</span> State income tax
+        </div>
+        <div class="w2-state-header">
+          <span class="w2-number">18</span> Local wages, tips, etc.
+        </div>
+        <div class="w2-state-header">
+          <span class="w2-number">19</span> Local income tax
+        </div>
+        <div class="w2-state-header">
+          <span class="w2-number">20</span> Locality name
+        </div>
+
+        <input type="text" class="w2-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}">
+        <input type="text" class="w2-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+        <input type="text" class="w2-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}">
+        <input type="text" class="w2-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}">
+        <input type="text" class="w2-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}">
+        <input type="text" class="w2-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="w2-footer">
+    <div class="w2-footer-form">
+      <span class="w2-form-label">Form</span>
+      <span class="w2-form-name">W-2</span>
+      <span class="w2-form-text">Wage and Tax Statement</span>
+    </div>
+    <div class="w2-footer-copy">Copy A — For Social Security Administration</div>
+    <div class="w2-footer-instructions">
+      Send this entire page with Form W-3 to the Social Security Administration; photocopies are not acceptable.
+    </div>
+    <div class="w2-footer-warning">Do Not Cut, Fold, or Staple Forms on This Page</div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: event.target.action
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

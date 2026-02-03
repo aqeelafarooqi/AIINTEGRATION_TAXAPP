@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+{% load static custom_filters %}
+<head>
+  <meta charset="utf-8">
+  <title>Form 1040</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    {% inline_static 'css/1040.css' %}
+  </style>
+</head>
+<body class="form-1040">
+{% form_fields_map form as fields %}
+
+{% if taxpayer %}
+  <form name="form" action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% else %}
+  <form name="form" action="/api/v1/taxpayer/self/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% endif %}
+{% csrf_token %}
+{% form1040_positions as positions %}
+{% form1040_line_numbers_page1 as line_numbers_page1 %}
+{% form1040_line_numbers_page2 as line_numbers_page2 %}
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+{% with dependents=taxpayer.dependent_set.all %}
+{% form1040_dependents dependents as dependent_slots %}
+{% form1040_text_page1 as text_page1 %}
+{% form1040_text_page2 as text_page2 %}
+{% form1040_label_positions as label_positions %}
+{% asset_url 'forms/form_1040/page1.svg' as page1_bg %}
+{% asset_url 'forms/form_1040/page2.svg' as page2_bg %}
+
+<div class="form-1040-wrapper">
+  <div class="form-1040-page" style="background-image: url('{{ page1_bg }}');">
+    <img class="page-bg" src="{{ page1_bg }}" alt="Form 1040 Page 1">
+    {% for text in text_page1 %}
+    <div class="form-1040-text" style="left:{{ text.left }}px; bottom:{{ text.bottom }}px;">{{ text.text }}</div>
+    {% endfor %}
+    {% with pos=positions.taxpayer_first_name %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.first_name|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.first_name|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_last_name %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.last_name|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.last_name|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_ssn %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.ssn|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.ssn|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_first_name %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{% if spouse %}{{ spouse.first_name|default:'' }}{% endif %}" readonly>
+      <span class="print-value">{% if spouse %}{{ spouse.first_name|default:'' }}{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_last_name %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{% if spouse %}{{ spouse.last_name|default:'' }}{% endif %}" readonly>
+      <span class="print-value">{% if spouse %}{{ spouse.last_name|default:'' }}{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_ssn %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{% if spouse %}{{ spouse.ssn|default:'' }}{% endif %}" readonly>
+      <span class="print-value">{% if spouse %}{{ spouse.ssn|default:'' }}{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.address_line %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px;">
+      <input type="text" value="{{ taxpayer.address|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.address|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.address_apt %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px;">
+      <input type="text" value="{{ taxpayer.apt|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.apt|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.address_city %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px;">
+      <input type="text" value="{{ taxpayer.city|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.city|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.address_state %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px;">
+      <input type="text" value="{{ taxpayer.state|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.state|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.address_zip %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px;">
+      <input type="text" value="{{ taxpayer.zip|default:'' }}" readonly>
+      <span class="print-value">{{ taxpayer.zip|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.presidential_you %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.presidential_spouse %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled>
+    </div>
+    {% endwith %}
+
+    {% resolve_filing_status taxpayer fields as filing_status %}
+
+    {% with pos=positions.filing_single %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled {% if filing_status == 2 %}checked{% endif %}>
+      <span class="checkbox-print">{% if filing_status == 2 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.filing_joint %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled {% if filing_status == 1 %}checked{% endif %}>
+      <span class="checkbox-print">{% if filing_status == 1 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.filing_separate %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled {% if filing_status == 5 %}checked{% endif %}>
+      <span class="checkbox-print">{% if filing_status == 5 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.filing_hoh %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled {% if filing_status == 3 %}checked{% endif %}>
+      <span class="checkbox-print">{% if filing_status == 3 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.filing_qss %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" disabled {% if filing_status == 4 %}checked{% endif %}>
+      <span class="checkbox-print">{% if filing_status == 4 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.digital_yes %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox">
+      <span class="checkbox-print"></span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.digital_no %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox">
+      <span class="checkbox-print"></span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.deduction_you_dependent %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.can_someone_else_claim %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.can_someone_else_claim %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.deduction_spouse_dependent %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.someone_can_claim == 2 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.someone_can_claim == 2 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.deduction_spouse_itemizes %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.someone_can_claim == 3 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.someone_can_claim == 3 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.age_you %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.you == 1 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.you == 1 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.blind_you %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.you == 2 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.you == 2 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.age_spouse %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.spouse == 1 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.spouse == 1 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.blind_spouse %}
+    <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+      <input type="checkbox" {% if taxpayer.spouse == 2 %}checked{% endif %}>
+      <span class="checkbox-print">{% if taxpayer.spouse == 2 %}✔{% endif %}</span>
+    </div>
+    {% endwith %}
+
+    {% for slot in dependent_slots %}
+      {% with dep=slot.dependent %}
+        {% with pos=slot.name %}
+        <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+          <input type="text" value="{% if dep %}{{ dep.first_name }} {{ dep.last_name }}{% endif %}">
+          <span class="print-value">{% if dep %}{{ dep.first_name }} {{ dep.last_name }}{% endif %}</span>
+        </div>
+        {% endwith %}
+        {% with pos=slot.ssn %}
+        <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+          <input type="text" value="{% if dep %}{{ dep.ssn|default:'' }}{% endif %}">
+          <span class="print-value">{% if dep %}{{ dep.ssn|default:'' }}{% endif %}</span>
+        </div>
+        {% endwith %}
+        {% with pos=slot.relationship %}
+        <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+          <input type="text" value="{% if dep %}{{ dep.get_who_display|default:'' }}{% endif %}">
+          <span class="print-value">{% if dep %}{{ dep.get_who_display|default:'' }}{% endif %}</span>
+        </div>
+        {% endwith %}
+        {% with pos=slot.child %}
+        <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+          {% if dep %}
+            <input type="checkbox" {% if dep.who == 1 and not dep.not_claiming_as_dependent %}checked{% endif %}>
+            <span class="checkbox-print">{% if dep.who == 1 and not dep.not_claiming_as_dependent %}✔{% endif %}</span>
+          {% else %}
+            <input type="checkbox">
+          {% endif %}
+        </div>
+        {% endwith %}
+        {% with pos=slot.other %}
+        <div class="form-1040-field checkbox" style="left:{{ pos.left }}px; top:{{ pos.top }}px;">
+          {% if dep %}
+            <input type="checkbox" {% if dep.who != 1 and not dep.not_claiming_as_dependent %}checked{% endif %}>
+            <span class="checkbox-print">{% if dep.who != 1 and not dep.not_claiming_as_dependent %}✔{% endif %}</span>
+          {% else %}
+            <input type="checkbox">
+          {% endif %}
+        </div>
+        {% endwith %}
+      {% endwith %}
+    {% endfor %}
+
+    {% for number in line_numbers_page1 %}
+      {% with field=fields|get_item:number %}
+        {% with key='line_'|add:number %}
+          {% with pos=positions|get_item:key %}
+            {% with label=label_positions|get_item:key %}
+              {% if label and label.page == 1 and field and field.label %}
+                <div class="form-1040-label" style="left:{{ label.left }}px; bottom:{{ label.bottom }}px; width:{{ label.width }}px;">
+                  <span class="form-1040-label-text">{{ field.label|safe }}</span>
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% if field and pos %}
+              <div class="form-1040-field {% if field.ftype != 'checkbox' %}number{% endif %}" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+                {% if field.ftype == 'checkbox' %}
+                  <input type="checkbox" {% if field.value %}checked{% endif %}>
+                  <span class="checkbox-print">{% if field.value %}✔{% endif %}</span>
+                {% else %}
+                  <input type="text" value="{{ field|field_value }}" readonly>
+                  <span class="print-value">{{ field|field_value }}</span>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+
+  <div class="form-1040-page" style="background-image: url('{{ page2_bg }}');">
+    <img class="page-bg" src="{{ page2_bg }}" alt="Form 1040 Page 2">
+    {% for text in text_page2 %}
+    <div class="form-1040-text" style="left:{{ text.left }}px; bottom:{{ text.bottom }}px;">{{ text.text }}</div>
+    {% endfor %}
+    {% for number in line_numbers_page2 %}
+      {% with field=fields|get_item:number %}
+        {% with key='line_'|add:number %}
+          {% with pos=positions|get_item:key %}
+            {% with label=label_positions|get_item:key %}
+              {% if label and label.page == 2 and field and field.label %}
+                <div class="form-1040-label" style="left:{{ label.left }}px; bottom:{{ label.bottom }}px; width:{{ label.width }}px;">
+                  <span class="form-1040-label-text">{{ field.label|safe }}</span>
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% if field and pos %}
+              <div class="form-1040-field {% if field.ftype != 'checkbox' %}number{% endif %}" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+                {% if field.ftype == 'checkbox' %}
+                  <input type="checkbox" {% if field.value %}checked{% endif %}>
+                  <span class="checkbox-print">{% if field.value %}✔{% endif %}</span>
+                {% else %}
+                  <input type="text" value="{{ field|field_value }}" readonly>
+                  <span class="print-value">{{ field|field_value }}</span>
+                {% endif %}
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
+    {% endfor %}
+
+    {% with pos=positions.third_party_name %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ user.designee_name|default:'' }}">
+      <span class="print-value">{{ user.designee_name|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.third_party_phone %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ user.designee_phone|default:'' }}">
+      <span class="print-value">{{ user.designee_phone|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.third_party_pin %}
+    <div class="form-1040-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ user.designee_pin|default:'' }}">
+      <span class="print-value">{{ user.designee_pin|default:'' }}</span>
+    </div>
+    {% endwith %}
+    {% with pos=positions.taxpayer_signature %}
+    <div class="form-1040-field signature-line" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer|full_name }}">
+      <span class="print-value">{{ taxpayer|full_name }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_signature_date %}
+    <div class="form-1040-field date-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ form.updated_at|date:'m/d/Y' }}">
+      <span class="print-value">{{ form.updated_at|date:'m/d/Y' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_occupation %}
+    <div class="form-1040-field occupation-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.occupation|default:'' }}">
+      <span class="print-value">{{ taxpayer.occupation|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_signature %}
+    <div class="form-1040-field signature-line" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ spouse|full_name }}">
+      <span class="print-value">{{ spouse|full_name }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_signature_date %}
+    <div class="form-1040-field date-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ form.updated_at|date:'m/d/Y' }}">
+      <span class="print-value">{{ form.updated_at|date:'m/d/Y' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.spouse_occupation %}
+    <div class="form-1040-field occupation-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ spouse.occupation|default:'' }}">
+      <span class="print-value">{{ spouse.occupation|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_phone %}
+    <div class="form-1040-field contact-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.number|default:user.phone_number|default:'' }}">
+      <span class="print-value">{{ taxpayer.number|default:user.phone_number|default:'' }}</span>
+    </div>
+    {% endwith %}
+
+    {% with pos=positions.taxpayer_email %}
+    <div class="form-1040-field contact-field" style="left:{{ pos.left }}px; top:{{ pos.top }}px; width:{{ pos.width }}px; height:{{ pos.height }}px;">
+      <input type="text" value="{{ taxpayer.email|default:user.email|default:'' }}">
+      <span class="print-value">{{ taxpayer.email|default:user.email|default:'' }}</span>
+    </div>
+    {% endwith %}
+  </div>
+</div>
+
+{% endwith %}
+{% endwith %}
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: event.target.action
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

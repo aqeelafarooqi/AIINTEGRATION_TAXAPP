@@ -1,0 +1,417 @@
+{% load static custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Form 1040</title>
+  <style>
+    {% inline_static 'css/form_1040_pdf.css' %}
+  </style>
+</head>
+<body>
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% with spouse=taxpayer_obj.taxpayer_spouse|default:None %}
+
+<div class="form-1040-container">
+  <div class="form-header-top">
+    <div class="form-header-left">
+      <div class="form-label">Form</div>
+      <div class="form-number">1040</div>
+    </div>
+    <div class="form-header-center">
+      <div class="dept-line">Department of the Treasury—Internal Revenue Service</div>
+      <div class="form-title">U.S. Individual Income Tax Return</div>
+    </div>
+    <div class="form-header-right">
+      <div class="year-box">2024</div>
+      <div class="omb-line">OMB No. 1545-0074</div>
+      <div class="irs-line">IRS Use Only—Do not write or staple in this space.</div>
+    </div>
+  </div>
+
+  <div class="tax-year-line">
+    <span>For the year Jan. 1–Dec. 31, 2024, or other tax year beginning _________________, 2024, ending _________________, 20___</span>
+    <span class="see-instructions">See separate instructions.</span>
+  </div>
+
+  <table class="name-address-table">
+    <tr>
+      <td class="field-label">Your first name and middle initial</td>
+      <td class="field-value" colspan="2">{{ taxpayer_obj.first_name|default:'' }}</td>
+      <td class="field-label">Last name</td>
+      <td class="field-value" colspan="3">{{ taxpayer_obj.last_name|default:'' }}</td>
+      <td class="field-label" rowspan="2">Your social security number</td>
+      <td class="field-value ssn-box" rowspan="2">{{ taxpayer_obj.ssn|default:'' }}</td>
+    </tr>
+    <tr>
+      <td class="field-label">If joint return, spouse's first name and middle initial</td>
+      <td class="field-value" colspan="2">{% if spouse %}{{ spouse.first_name|default:'' }}{% endif %}</td>
+      <td class="field-label">Last name</td>
+      <td class="field-value" colspan="3">{% if spouse %}{{ spouse.last_name|default:'' }}{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="field-label" colspan="2">Home address (number and street). If you have a P.O. box, see instructions.</td>
+      <td class="field-value" colspan="4">{{ taxpayer_obj.address|default:'' }}</td>
+      <td class="field-label">Apt. no.</td>
+      <td class="field-value">{{ taxpayer_obj.apt|default:'' }}</td>
+      <td class="field-label" rowspan="2">Spouse's social security number</td>
+      <td class="field-value ssn-box" rowspan="2">{% if spouse %}{{ spouse.ssn|default:'' }}{% endif %}</td>
+    </tr>
+    <tr>
+      <td class="field-label" colspan="2">City, town, or post office. If you have a foreign address, also complete spaces below.</td>
+      <td class="field-value" colspan="2">{{ taxpayer_obj.city|default:'' }}</td>
+      <td class="field-label">State</td>
+      <td class="field-value">{{ taxpayer_obj.state|default:'' }}</td>
+      <td class="field-label">ZIP code</td>
+      <td class="field-value" colspan="2">{{ taxpayer_obj.zip|default:'' }}</td>
+    </tr>
+    <tr>
+      <td class="field-label">Foreign country name</td>
+      <td class="field-value" colspan="3"></td>
+      <td class="field-label" colspan="2">Foreign province/state/county</td>
+      <td class="field-value" colspan="2"></td>
+      <td class="field-label">Foreign postal code</td>
+      <td class="field-value"></td>
+    </tr>
+  </table>
+
+  <div class="filing-status-section">
+    <div class="section-header">Filing Status</div>
+    <div class="checkbox-instructions">Check only one box.</div>
+    {% resolve_filing_status taxpayer_obj fields as filing_status %}
+    <div class="filing-status-grid">
+      <div class="filing-checkbox">
+        <input type="checkbox" {% if filing_status == 2 %}checked{% endif %}>
+        <label>Single</label>
+      </div>
+      <div class="filing-checkbox">
+        <input type="checkbox" {% if filing_status == 1 %}checked{% endif %}>
+        <label>Married filing jointly (even if only one had income)</label>
+      </div>
+      <div class="filing-checkbox">
+        <input type="checkbox" {% if filing_status == 5 %}checked{% endif %}>
+        <label>Married filing separately (MFS)</label>
+      </div>
+      <div class="filing-checkbox">
+        <input type="checkbox" {% if filing_status == 3 %}checked{% endif %}>
+        <label>Head of household (HOH)</label>
+      </div>
+      <div class="filing-checkbox">
+        <input type="checkbox" {% if filing_status == 4 %}checked{% endif %}>
+        <label>Qualifying surviving spouse (QSS)</label>
+      </div>
+    </div>
+    <div class="filing-note">If you checked the MFS box, enter the name of your spouse. If you checked the HOH or QSS box, enter the child's name if the qualifying person is a child but not your dependent: _______________</div>
+    <div class="filing-checkbox">
+      <input type="checkbox">
+      <label>If treating a nonresident alien or dual-status alien spouse as a U.S. resident for the entire tax year, check the box and enter their name (see instructions and attach statement if required): _______________</label>
+    </div>
+  </div>
+
+  <div class="digital-assets-section">
+    <div class="section-header-inline">Digital Assets</div>
+    <div class="digital-question">At any time during 2024, did you: (a) receive (as a reward, award, or payment for property or services); or (b) sell, exchange, or otherwise dispose of a digital asset (or a financial interest in a digital asset)? (See instructions.)</div>
+    <div class="yes-no-boxes">
+      <input type="checkbox"> Yes
+      <input type="checkbox"> No
+    </div>
+  </div>
+
+  <div class="standard-deduction-section">
+    <div class="section-header-inline">Standard Deduction</div>
+    <div class="deduction-options">
+      <div class="deduction-checkbox">
+        <input type="checkbox">
+        <label>Someone can claim: <input type="checkbox"> You as a dependent <input type="checkbox"> Your spouse as a dependent</label>
+      </div>
+      <div class="deduction-checkbox">
+        <input type="checkbox">
+        <label>Spouse itemizes on a separate return or you were a dual-status alien</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="age-blindness-section">
+    <div class="section-header-inline">Age/Blindness</div>
+    <span class="age-label">You:</span>
+    <input type="checkbox"> Were born before January 2, 1960
+    <input type="checkbox"> Are blind
+    <span class="age-label">Spouse:</span>
+    <input type="checkbox"> Was born before January 2, 1960
+    <input type="checkbox"> Is blind
+  </div>
+
+  <div class="dependents-section">
+    <div class="section-header-inline">Dependents</div>
+    <span class="dependents-instructions">(see instructions):</span>
+    <div class="dependents-note">If more than four dependents, see instructions and check here . . .</div>
+    <table class="dependents-table">
+      <thead>
+        <tr>
+          <th>(1) First name</th>
+          <th>Last name</th>
+          <th>(2) Social security number</th>
+          <th>(3) Relationship to you</th>
+          <th colspan="2">(4) Check the box if qualifies for (see instructions):</th>
+        </tr>
+        <tr>
+          <th colspan="4"></th>
+          <th>Child tax credit</th>
+          <th>Credit for other dependents</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td></td><td></td><td></td><td></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+        <tr><td></td><td></td><td></td><td></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="income-section">
+    <div class="section-header-black">Income</div>
+    <div class="side-note">Attach Form(s) W-2 here. Also attach Forms W-2G and 1099-R if tax was withheld. If you did not get a Form W-2, see instructions.</div>
+    
+    <div class="form-line">
+      <span class="line-num">1a</span>
+      <span class="line-text">Total amount from Form(s) W-2, box 1 (see instructions)</span>
+      <span class="dots"></span>
+      <span class="line-box">1a</span>
+      <span class="line-value">{{ fields|get_item:'1a'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1b</span>
+      <span class="line-text">Household employee wages not reported on Form(s) W-2</span>
+      <span class="dots"></span>
+      <span class="line-box">1b</span>
+      <span class="line-value">{{ fields|get_item:'1b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1c</span>
+      <span class="line-text">Tip income not reported on line 1a (see instructions)</span>
+      <span class="dots"></span>
+      <span class="line-box">1c</span>
+      <span class="line-value">{{ fields|get_item:'1c'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1d</span>
+      <span class="line-text">Medicaid waiver payments not reported on Form(s) W-2 (see instructions)</span>
+      <span class="dots"></span>
+      <span class="line-box">1d</span>
+      <span class="line-value">{{ fields|get_item:'1d'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1e</span>
+      <span class="line-text">Taxable dependent care benefits from Form 2441, line 26</span>
+      <span class="dots"></span>
+      <span class="line-box">1e</span>
+      <span class="line-value">{{ fields|get_item:'1e'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1f</span>
+      <span class="line-text">Employer-provided adoption benefits from Form 8839, line 29</span>
+      <span class="dots"></span>
+      <span class="line-box">1f</span>
+      <span class="line-value">{{ fields|get_item:'1f'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1g</span>
+      <span class="line-text">Wages from Form 8919, line 6</span>
+      <span class="dots"></span>
+      <span class="line-box">1g</span>
+      <span class="line-value">{{ fields|get_item:'1g'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1h</span>
+      <span class="line-text">Other earned income (see instructions)</span>
+      <span class="dots"></span>
+      <span class="line-box">1h</span>
+      <span class="line-value">{{ fields|get_item:'1h'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">1i</span>
+      <span class="line-text">Nontaxable combat pay election (see instructions)</span>
+      <span class="dots"></span>
+      <span class="line-box">1i</span>
+      <span class="line-value">{{ fields|get_item:'1i'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line total-line">
+      <span class="line-num">1z</span>
+      <span class="line-text">Add lines 1a through 1i</span>
+      <span class="dots"></span>
+      <span class="line-box">1z</span>
+      <span class="line-value">{{ fields|get_item:'1z'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="side-note">Attach Sch. B if required.</div>
+
+    <div class="form-line split">
+      <span class="line-num">2a</span>
+      <span class="line-text">Tax-exempt interest</span>
+      <span class="dots"></span>
+      <span class="line-box">2a</span>
+      <span class="line-value-small">{{ fields|get_item:'2a'|field_value|default:'' }}</span>
+      <span class="line-num-b">b</span>
+      <span class="line-text-b">Taxable interest</span>
+      <span class="dots"></span>
+      <span class="line-box">2b</span>
+      <span class="line-value">{{ fields|get_item:'2b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line split">
+      <span class="line-num">3a</span>
+      <span class="line-text">Qualified dividends</span>
+      <span class="dots"></span>
+      <span class="line-box">3a</span>
+      <span class="line-value-small">{{ fields|get_item:'3a'|field_value|default:'' }}</span>
+      <span class="line-num-b">b</span>
+      <span class="line-text-b">Ordinary dividends</span>
+      <span class="dots"></span>
+      <span class="line-box">3b</span>
+      <span class="line-value">{{ fields|get_item:'3b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line split">
+      <span class="line-num">4a</span>
+      <span class="line-text">IRA distributions</span>
+      <span class="dots"></span>
+      <span class="line-box">4a</span>
+      <span class="line-value-small">{{ fields|get_item:'4a'|field_value|default:'' }}</span>
+      <span class="line-num-b">b</span>
+      <span class="line-text-b">Taxable amount</span>
+      <span class="dots"></span>
+      <span class="line-box">4b</span>
+      <span class="line-value">{{ fields|get_item:'4b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line split">
+      <span class="line-num">5a</span>
+      <span class="line-text">Pensions and annuities</span>
+      <span class="dots"></span>
+      <span class="line-box">5a</span>
+      <span class="line-value-small">{{ fields|get_item:'5a'|field_value|default:'' }}</span>
+      <span class="line-num-b">b</span>
+      <span class="line-text-b">Taxable amount</span>
+      <span class="dots"></span>
+      <span class="line-box">4b</span>
+      <span class="line-value">{{ fields|get_item:'5b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line split">
+      <span class="line-num">6a</span>
+      <span class="line-text">Social security benefits</span>
+      <span class="dots"></span>
+      <span class="line-box">6a</span>
+      <span class="line-value-small">{{ fields|get_item:'6a'|field_value|default:'' }}</span>
+      <span class="line-num-b">b</span>
+      <span class="line-text-b">Taxable amount</span>
+      <span class="dots"></span>
+      <span class="line-box">6b</span>
+      <span class="line-value">{{ fields|get_item:'6b'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">6c</span>
+      <span class="line-text">If you elect to use the lump-sum election method, check here (see instructions)</span>
+      <span class="dots"></span>
+      <input type="checkbox">
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">7</span>
+      <span class="line-text">Capital gain or (loss). Attach Schedule D if required. If not required, check here</span>
+      <span class="dots"></span>
+      <input type="checkbox">
+      <span class="line-box">7</span>
+      <span class="line-value">{{ fields|get_item:'7'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">8</span>
+      <span class="line-text">Additional income from Schedule 1, line 10</span>
+      <span class="dots"></span>
+      <span class="line-box">8</span>
+      <span class="line-value">{{ fields|get_item:'8'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line total-line">
+      <span class="line-num">9</span>
+      <span class="line-text">Add lines 1z, 2b, 3b, 4b, 5b, 6b, 7, and 8. This is your <strong>total income</strong></span>
+      <span class="dots"></span>
+      <span class="line-box">9</span>
+      <span class="line-value">{{ fields|get_item:'9'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">10</span>
+      <span class="line-text">Adjustments to income from Schedule 1, line 26</span>
+      <span class="dots"></span>
+      <span class="line-box">10</span>
+      <span class="line-value">{{ fields|get_item:'10'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line total-line">
+      <span class="line-num">11</span>
+      <span class="line-text">Subtract line 10 from line 9. This is your <strong>adjusted gross income</strong></span>
+      <span class="dots"></span>
+      <span class="line-box">11</span>
+      <span class="line-value">{{ fields|get_item:'11'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="side-note">Standard Deduction for— • Single or Married filing separately, $14,600 • Married filing jointly or Qualifying surviving spouse, $29,200 • Head of household, $21,900 • If you checked any box under Standard Deduction, see instructions.</div>
+
+    <div class="form-line">
+      <span class="line-num">12</span>
+      <span class="line-text"><strong>Standard deduction or itemized deductions</strong> (from Schedule A)</span>
+      <span class="dots"></span>
+      <span class="line-box">12</span>
+      <span class="line-value">{{ fields|get_item:'12'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">13</span>
+      <span class="line-text">Qualified business income deduction from Form 8995 or Form 8995-A</span>
+      <span class="dots"></span>
+      <span class="line-box">13</span>
+      <span class="line-value">{{ fields|get_item:'13'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line">
+      <span class="line-num">14</span>
+      <span class="line-text">Add lines 12 and 13</span>
+      <span class="dots"></span>
+      <span class="line-box">14</span>
+      <span class="line-value">{{ fields|get_item:'14'|field_value|default:'' }}</span>
+    </div>
+
+    <div class="form-line total-line">
+      <span class="line-num">15</span>
+      <span class="line-text">Subtract line 14 from line 11. If zero or less, enter -0-. This is your <strong>taxable income</strong></span>
+      <span class="dots"></span>
+      <span class="line-box">15</span>
+      <span class="line-value">{{ fields|get_item:'15'|field_value|default:'' }}</span>
+    </div>
+  </div>
+
+  <div class="form-footer">
+    <div class="footer-left"><strong>For Disclosure, Privacy Act, and Paperwork Reduction Act Notice, see separate instructions.</strong></div>
+    <div class="footer-center">Cat. No. 11320B</div>
+    <div class="footer-right">Form <strong>1040</strong> (2024)</div>
+  </div>
+</div>
+
+{% endwith %}
+{% endwith %}
+</body>
+</html>

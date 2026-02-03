@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}QBI Explanation Worksheet - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/qbi_explanation_worksheet.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="qbi-ws-container">
+  <div class="qbi-ws-top-header">
+    <div class="qbi-ws-top-left">
+      <div class="qbi-ws-form-label">QBI Explanation<br>Worksheet</div>
+    </div>
+    <div class="qbi-ws-top-center">
+      <div class="qbi-ws-main-title">Qualified Business Income Deduction Calculation</div>
+      <div class="qbi-ws-subtitle">Supporting worksheet for Form 8995 or 8995-A</div>
+    </div>
+    <div class="qbi-ws-top-right">
+      <div class="qbi-ws-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="qbi-ws-name-row">
+    <div style="flex: 1;">
+      <div class="qbi-ws-name-label">Taxpayer Name</div>
+      <div class="qbi-ws-name-value">{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}</div>
+    </div>
+    <div style="width: 200px;">
+      <div class="qbi-ws-name-label">SSN</div>
+      <div class="qbi-ws-name-value">{{ taxpayer_obj.ssn|default:'' }}</div>
+    </div>
+  </div>
+
+  <div class="qbi-ws-note">
+    This worksheet helps determine the qualified business income (QBI) deduction. Use this to calculate the 20% deduction for pass-through business income. Complete Form 8995 (simplified) or Form 8995-A (standard) based on your taxable income.
+  </div>
+
+  <div class="qbi-ws-section-header">
+    Part I - QBI Component Calculation
+  </div>
+
+  <div class="qbi-ws-section">
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">1</span>
+      <span class="qbi-ws-line-text">Qualified business income from all qualified trades or businesses</span>
+      <span class="qbi-ws-line-box">1</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">2</span>
+      <span class="qbi-ws-line-text">Multiply line 1 by 20% (0.20)</span>
+      <span class="qbi-ws-line-box">2</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">3</span>
+      <span class="qbi-ws-line-text">Taxable income before QBI deduction (Form 1040 line 15)</span>
+      <span class="qbi-ws-line-box">3</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">4</span>
+      <span class="qbi-ws-line-text">Net capital gain (Schedule D line 21, or Schedule D Tax Worksheet line 22 if applicable)</span>
+      <span class="qbi-ws-line-box">4</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">5</span>
+      <span class="qbi-ws-line-text">Subtract line 4 from line 3. If zero or less, enter 0</span>
+      <span class="qbi-ws-line-box">5</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">6</span>
+      <span class="qbi-ws-line-text">Multiply line 5 by 20% (0.20)</span>
+      <span class="qbi-ws-line-box">6</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-result-line">
+      <span class="qbi-ws-line-num">7</span>
+      <span class="qbi-ws-line-text"><strong>QBI deduction before income limitation.</strong> Enter smaller of line 2 or line 6</span>
+      <span class="qbi-ws-line-box">7</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+  </div>
+
+  <div class="qbi-ws-section-header">
+    Part II - W-2 Wage and UBIA Limitation (If Applicable)
+  </div>
+
+  <div class="qbi-ws-section">
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">8</span>
+      <span class="qbi-ws-line-text">Total W-2 wages from all qualified trades or businesses</span>
+      <span class="qbi-ws-line-box">8</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">9</span>
+      <span class="qbi-ws-line-text">Multiply line 8 by 50% (0.50) - W-2 wage limitation</span>
+      <span class="qbi-ws-line-box">9</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">10</span>
+      <span class="qbi-ws-line-text">Unadjusted basis of qualified property (UBIA)</span>
+      <span class="qbi-ws-line-box">10</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">11</span>
+      <span class="qbi-ws-line-text">Multiply line 10 by 2.5% (0.025)</span>
+      <span class="qbi-ws-line-box">11</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">12</span>
+      <span class="qbi-ws-line-text">Multiply line 8 by 25% (0.25)</span>
+      <span class="qbi-ws-line-box">12</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">13</span>
+      <span class="qbi-ws-line-text">Add lines 11 and 12 - Alternative W-2 wage/UBIA limitation</span>
+      <span class="qbi-ws-line-box">13</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" {% field_readonly fields|get_item:'13' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">14</span>
+      <span class="qbi-ws-line-text">Enter the larger of line 9 or line 13</span>
+      <span class="qbi-ws-line-box">14</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-calculation-line">
+      <span class="qbi-ws-line-num">15</span>
+      <span class="qbi-ws-line-text">Enter the smaller of line 2 or line 14 (wage/UBIA limited QBI component)</span>
+      <span class="qbi-ws-line-box">15</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+  </div>
+
+  <div class="qbi-ws-section-header">
+    Part III - Threshold Determination
+  </div>
+
+  <div class="qbi-ws-section">
+    <div class="qbi-ws-form-line qbi-ws-threshold-line">
+      <span class="qbi-ws-line-num">16</span>
+      <span class="qbi-ws-line-text">Filing status threshold ($383,900 MFJ, $191,950 other for 2025; $364,200 MFJ, $182,100 other for 2024)</span>
+      <span class="qbi-ws-line-box">16</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-threshold-line">
+      <span class="qbi-ws-line-num">17</span>
+      <span class="qbi-ws-line-text">Is taxable income above threshold?</span>
+      <span class="qbi-ws-line-box">17</span>
+      <input type="checkbox" class="qbi-ws-checkbox" name="{{ fields|get_item:'17'|field_id }}" {% if fields|get_item:'17'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="qbi-ws-form-line">
+      <span class="qbi-ws-line-num">18</span>
+      <span class="qbi-ws-line-text">Phase-in amount if applicable (for income within phase-in range)</span>
+      <span class="qbi-ws-line-box">18</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}">
+    </div>
+
+    <div class="qbi-ws-form-line qbi-ws-result-line">
+      <span class="qbi-ws-line-num">19</span>
+      <span class="qbi-ws-line-text"><strong>QBI deduction.</strong> Enter here and on Form 8995 or 8995-A</span>
+      <span class="qbi-ws-line-box">19</span>
+      <input type="text" class="qbi-ws-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" {% field_readonly fields|get_item:'19' %}>
+    </div>
+  </div>
+
+  <div class="qbi-ws-subheader">
+    Notes and Explanation
+  </div>
+
+  <div class="qbi-ws-explanation">
+    <textarea name="{{ fields|get_item:'20'|field_id }}" placeholder="Enter any notes or explanations for the QBI calculation...">{{ fields|get_item:'20'|field_value|default:'' }}</textarea>
+  </div>
+
+  <div class="qbi-ws-footer">
+    <div>
+      <strong>This worksheet is for informational purposes only.</strong>
+    </div>
+    <div>
+      <strong>QBI Explanation Worksheet {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

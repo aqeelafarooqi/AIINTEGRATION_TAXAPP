@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule F - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_f.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+
+<div class="schedule-f-container">
+  <div class="schedule-f-top-header">
+    <div class="schedule-f-top-left">
+      <div class="schedule-f-form-label">SCHEDULE F</div>
+      <div class="schedule-f-form-number">(Form 1040)</div>
+      <div class="schedule-f-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-f-top-center">
+      <div class="schedule-f-main-title">Profit or Loss From Farming</div>
+      <div class="schedule-f-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, 1040-NR, 1041, or 1065.</strong></div>
+      <div class="schedule-f-web-link"><strong>▶ Go to <a href="https://www.irs.gov/ScheduleF" target="_blank">www.irs.gov/ScheduleF</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-f-top-right">
+      <div class="schedule-f-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-f-year-large">{{ year }}</div>
+      <div class="schedule-f-attachment">Attachment<br>Sequence No. <strong>14</strong></div>
+      <div class="schedule-f-ssn-label">Social security number (SSN)</div>
+    </div>
+  </div>
+
+  <div class="schedule-f-name-row">
+    <div class="schedule-f-name-label">
+      <strong>Name of proprietor</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+      </span>
+    </div>
+    <div class="schedule-f-ssn-box">
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <table class="schedule-f-main-table">
+    <tr>
+      <td class="schedule-f-left-column">
+        <div class="schedule-f-section-header">Part I<br>Farm Income</div>
+      </td>
+      <td class="schedule-f-middle-column">
+        {% for line_num in "1a 1b 2 3a 3b 4a 4b 5a 5b 5c 6a 6b 6c 6d 7 8 9"|split:" " %}
+          {% with field=fields|get_item:line_num %}
+            {% if field %}
+              <div class="schedule-f-form-line">
+                <span class="schedule-f-line-num">{{ line_num }}</span>
+                <span class="schedule-f-line-text">{{ field.label|default:""|safe }}</span>
+                <input type="text" class="schedule-f-line-input irs-line-input" value="{{ field|field_value|default:'' }}" {% field_readonly field %} {% field_disabled field %}>
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-f-left-column">
+        <div class="schedule-f-section-header">Part II<br>Farm Expenses</div>
+      </td>
+      <td class="schedule-f-middle-column">
+        {% for line_num in "10 11 12 13 14 15 16 17 18 19 20 21 22 23 24a 24b 24c 25 26 27 28 29 30 31 32 33a 33b 33c 33d 33e 33f 34 35 36"|split:" " %}
+          {% with field=fields|get_item:line_num %}
+            {% if field %}
+              <div class="schedule-f-form-line">
+                <span class="schedule-f-line-num">{{ line_num }}</span>
+                <span class="schedule-f-line-text">{{ field.label|default:""|safe }}</span>
+                <input type="text" class="schedule-f-line-input irs-line-input" value="{{ field|field_value|default:'' }}" {% field_readonly field %} {% field_disabled field %}>
+              </div>
+            {% endif %}
+          {% endwith %}
+        {% endfor %}
+      </td>
+    </tr>
+  </table>
+
+  <div class="schedule-f-footer">
+    <div class="schedule-f-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see the separate instructions.</strong>
+    </div>
+    <div class="schedule-f-footer-center">
+      Cat. No. 11346H
+    </div>
+    <div class="schedule-f-footer-right">
+      <strong>Schedule F (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

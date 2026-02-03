@@ -1,0 +1,862 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/eic.css' %}">
+  <title>SCHEDULE EIC</title>
+</head>
+
+<body>
+
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+<header>
+  <div class="flex-column">
+    <p style="font-weight: 600; font-size: 24px; width: 200px;">SCHEDULE EIC <br/>(Form 1040)</p>
+    <p style="margin-top: 24px;">Department of the Treasury<br/>
+      Internal Revenue Service</p>
+  </div>
+
+  <div class="flex-column"
+       style="text-align: center; border-left: 1px solid black; padding-left: 200px; padding-right: 200px;">
+    <p style="font-weight: 600; font-size: 24px;">Earned Income Credit</p>
+    <p>Qualifying Child Information</p>
+    <strong style="margin-top: 12px;">Complete and attach to Form 1040 or 1040-SR only if you have a qualifying
+      child.</strong>
+    <strong style="margin-top: 8px;">Go to www.irs.gov/ScheduleEIC for the latest information.</strong>
+  </div>
+
+  <div class="flex-column" style="border-left: 1px solid black; width: 150px; text-align: center;">
+    <div style="border-bottom: 1px solid  black;">
+      <p>OMB No. 1545-0074</p>
+    </div>
+
+    <p style="font-size: 24px; font-weight: 24px; margin-top: 12px;">{{ year }}</p>
+
+    <p>Attachment <br/> Sequence No. <strong style="font-size: 18px;">43</strong></p>
+
+  </div>
+</header>
+
+<main>
+  <div class="flex-row" style="width: 100%; border-bottom: 1px solid black;">
+    <div class="flex-column" style="width: 80%;">
+      <p>Name(s) shown on return</p>
+      <input type="text" value="{{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}"/>
+    </div>
+
+    <div class="flex-column" style="border-left: 1px solid black; width: 20%;">
+      <strong style="margin-left: 8px;">Your social security number</strong>
+      <input type="text" value="{{ user.ssn }}"/>
+    </div>
+  </div>
+
+  <div class="flex-row" style="width: 100%; border-bottom: 1px solid black;">
+    <p style="margin-top: 4px; margin-bottom: 4px;">If you are separated from your spouse, filing a separate
+      return, and meet the requirements to claim the EIC (see instructions), check here</p>
+    <input type="checkbox" style="margin-left: 12px;"/>
+  </div>
+
+  <div class="flex-row"
+       style="width: 100%; border-bottom: 1px solid black; padding-top: 4px; padding-bottom: 4px;">
+    <div style="width: 30%;">
+      <p style="font-weight: 600; font-size: 24px;">Before you begin:</p>
+    </div>
+    <ul style="margin-left: 64px;">
+      <li>See the instructions for Form 1040, line 27, to make sure that <strong>(a)</strong> you can take the
+        EIC, and <strong>(b)</strong> you
+        have a
+        qualifying child. See also Pub. 596.
+      </li>
+      <li style="margin-top: 8px;">Be sure the child’s name on line 1 and social security number (SSN) on line
+        2 agree with the child’s
+        social
+        security card. Otherwise, at the time we process your return, we may reduce your EIC. If the name or
+        SSN on
+        the child’s social security card is not correct, call the Social Security Administration at
+        800-772-1213.
+      </li>
+      <li style="margin-top: 8px;">If you have a child who meets the conditions to be your qualifying child
+        for purposes of claiming
+        the EIC, but that
+        child doesn’t have an SSN as defined in the instructions for Form 1040, line 27, see the
+        instructions.
+      </li>
+    </ul>
+  </div>
+
+  <div class="flex-row" style="width: 100%; padding-top: 4px; padding-bottom: 4px;">
+    <div>
+      <img src="{% static 'img/forms/Screenshot 2024-05-01 at 2.58.43 PM.jpg' %}" style="height: 80px;"/>
+    </div>
+
+    <ul style="margin-left: 24px;">
+      <li><em>You can’t claim the EIC for a child who didn’t live with you for more than half of the
+        year.</em></li>
+      <li style="margin-top: 4px;"><em>If your child doesn’t have an SSN as defined in the instructions for
+        Form 1040, line 27, see the
+        instructions.</em></li>
+      <li style="margin-top: 4px;"><em>If you take the EIC even though you are not eligible, you may not be
+        allowed to take the credit
+        for up to 10 years. See the instructions for details.</em></li>
+      <li style="margin-top: 4px;"><em>It will take us longer to process your return and issue your refund if
+        you do not fill in all
+        lines that apply for each qualifying child.</em></li>
+    </ul>
+  </div>
+
+  <div class="flex-row"
+       style="width: 100%; border-bottom: 5px solid black; border-top: 5px solid black; padding-top: 4px; padding-bottom: 4px;">
+
+    <div style="width: 25%">
+      <p
+              style="font-weight: 600; color: #00AAF7; text-decoration: underline; font-size: 24px; text-align: center;">
+        Qualifying Child
+        Information</p>
+    </div>
+    <div style="text-align: center; width: 25%;">Child 1</div>
+    <div style="text-align: center; width: 25%;">Child 2</div>
+    <div style="text-align: center; width: 25%;">Child 3</div>
+  </div>
+
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">1</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="font-weight: 600; font-size: 20px">Child’s name</p>
+        <p style="margin-top: 8px;">If you have more than three qualifying
+          children, you have to list only three to get
+          the maximum credit.</p>
+      </div>
+    </div>
+
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+        <p style="margin-left: 4px; margin-top: 4px;">First name</p>
+        <p style="margin-right: 4px; margin-top: 4px;">Last name</p>
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+        <p style="margin-left: 4px; margin-top: 4px;">First name</p>
+        <p style="margin-right: 4px; margin-top: 4px;">Last name</p>
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+        <p style="margin-left: 4px; margin-top: 4px;">First name</p>
+        <p style="margin-right: 4px; margin-top: 4px;">Last name</p>
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">2</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="font-weight: 600; font-size: 20px">Child’s SSN</p>
+        <p style="margin-top: 8px;">The child must have an SSN as defined in
+          the instructions for Form 1040, line 27,
+          unless the child was born and died in {{ year }}
+          or you are claiming the self-only EIC (see
+          instructions). If your child was born and
+          died in {{ year }} and did not have an SSN,
+          enter “Died” on this line and attach a copy
+          of the child’s birth certificate, death
+          certificate, or hospital medical records
+          showing a live birth.</p>
+      </div>
+    </div>
+
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <div class="flex-row" style="justify-content: space-between;">
+      </div>
+
+      <input type="text" style="height: 100%;"/>
+
+    </div>
+
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">3</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="font-weight: 600; font-size: 20px">Child’s year of birth</p>
+      </div>
+    </div>
+
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+
+      <div class="flex-column">
+        <div class="flex-row" style="align-items: baseline; margin-top: 4px;">
+          <p style="margin-left: 4px; ">Year</p>
+          <div class="input-boxes" style="margin-left: 24px;">
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+          </div>
+        </div>
+
+        <em style="color: #00AAF7; margin-left: 4px; margin-top: 4px;">If born after 2004 and the child is
+          younger than you (or your spouse,
+          if filing jointly), skip lines 4a and
+          4b; go to line 5.</em>
+      </div>
+
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+
+      <div class="flex-column">
+        <div class="flex-row" style="align-items: baseline; margin-top: 4px;">
+          <p style="margin-left: 4px; ">Year</p>
+          <div class="input-boxes" style="margin-left: 24px;">
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+          </div>
+        </div>
+
+        <em style="color: #00AAF7; margin-left: 4px; margin-top: 4px;">If born after 2004 and the child is
+          younger than you (or your spouse,
+          if filing jointly), skip lines 4a and
+          4b; go to line 5.</em>
+      </div>
+
+
+    </div>
+
+    <div
+            style="width: 25%; display: flex; flex-direction: column; border-left: 1px solid black; border-bottom: 1px solid black;">
+
+      <div class="flex-column">
+        <div class="flex-row" style="align-items: baseline; margin-top: 4px;">
+          <p style="margin-left: 4px; ">Year</p>
+          <div class="input-boxes" style="margin-left: 24px;">
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+            <input type="text" maxlength="1" class="char-box"/>
+          </div>
+        </div>
+
+        <em style="color: #00AAF7; margin-left: 4px; margin-top: 4px;">If born after 2004 and the child is
+          younger than you (or your spouse,
+          if filing jointly), skip lines 4a and
+          4b; go to line 5.</em>
+      </div>
+
+
+    </div>
+
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">4a</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="margin-top: 4px;">Was the child under age 24 at the end of
+          {{ year }}, a student, and younger than you (or
+          your spouse, if filing jointly)?</p>
+      </div>
+    </div>
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style="color: #00AAF7; margin-left: 24px;">Go to
+              line 4b.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a2" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a2" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style="color: #00AAF7; margin-left: 24px;">Go to
+              line 4b.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a3" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a3" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style="color: #00AAF7; margin-left: 24px;">Go to
+              line 4b.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">b</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="margin-top: 4px;">Was the child permanently and totally
+          disabled during any part of {{ year }}?</p>
+      </div>
+    </div>
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a4" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a4" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style=" margin-left: 24px;">The child is not a
+              qualifying child.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a5" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a5" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style="margin-left: 24px;">The child is not a
+              qualifying child.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black; border-left: 1px solid black;">
+      <div class="flex-column" style="width: 100%;">
+        <div class="flex-row" style="align-items: center; justify-content: center; margin-top: 12px;">
+          <div class="flex-column">
+            <div class="flex-row">
+              <input name="4a6" id="4a" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;"
+                     for="4a">Yes.</label>
+            </div>
+            <em style="color: #00AAF7;">Go to
+              line 5.</em>
+          </div>
+
+          <div class="flex-column">
+            <div class="flex-row" style="margin-left: 24px;">
+              <input name="4a6" id="no" type="checkbox">
+              <label style="font-weight: 600; font-size: 18px; margin-left: 8px;" for="4a">No.</label>
+            </div>
+            <em style="margin-left: 24px;">The child is not a
+              qualifying child.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">5</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="font-weight: 600; font-size: 20px">Child’s relationship to you</p>
+        <p style="margin-top: 8px;">(for example, son, daughter, grandchild,
+          niece, nephew, eligible foster child, etc.)</p>
+      </div>
+    </div>
+
+    <div style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black;">
+      <input type="text" style="width: 100%; height: 94%;"/>
+    </div>
+    <div style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black;"><input type="text"
+                                                                                                  style="width: 100%; height: 94%;"/>
+    </div>
+    <div style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black;"><input type="text"
+                                                                                                  style="width: 100%; height: 94%;"/>
+    </div>
+  </div>
+
+  <div class="flex-row">
+    <div style="width: 25%; display: flex; border-bottom: 1px solid black;">
+      <p style="font-weight: 600; font-size: 18px;">6</p>
+      <div class="flex-column" style="padding-left: 12px;">
+        <p style="font-weight: 600; font-size: 20px">Number of months child lived
+          with you in the United States
+          during {{ year }}</p>
+        <ul style="margin-top: 8px;">
+          <li>If the child lived with you for more than
+            half of {{ year }} but less than 7 months,
+            enter “7.”
+          </li>
+          <li>If the child was born or died in {{ year }} and
+            your home was the child’s home for more
+            than half the time he or she was alive
+            during {{ year }}, enter “12.”
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+            style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+      <div class="flex-column">
+        <div class="flex-row">
+          <input type="text"/>
+          <p>months</p>
+        </div>
+        <em>Do not enter more than 12
+          months.</em>
+      </div>
+    </div>
+
+    <div
+            style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+      <div class="flex-column">
+        <div class="flex-row">
+          <input type="text"/>
+          <p>months</p>
+        </div>
+        <em>Do not enter more than 12
+          months.</em>
+      </div>
+    </div>
+
+    <div
+            style="width: 25%; border-left: 1px solid black; border-bottom: 1px solid black; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+      <div class="flex-column">
+        <div class="flex-row">
+          <input type="text"/>
+          <p>months</p>
+        </div>
+        <em>Do not enter more than 12
+          months.</em>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-row" style="justify-content: space-between; margin-top: 4px;">
+    <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    <p>Cat. No. 13339M</p> <strong>Schedule EIC (Form 1040) {{ year }}</strong>
+  </div>
+
+  <div class="flex-row"
+       style="justify-content: space-between; border-top: 1px solid black; border-bottom: 5px solid black;">
+    <p style="font-size: 32px; font-weight: 600;">Purpose of Schedule</p>
+  </div>
+
+  <div class="flex-row" style="border-bottom: 1px solid black; padding-bottom: 8px;">
+    <p style="margin-top: 8px;">After you have figured your earned income credit (EIC), use Schedule EIC to give
+      the IRS information
+      about your qualifying child(ren). See the instructions for Form 1040, line 27, for information on who
+      may be a qualifying child.
+      To figure the amount of your credit or to have the IRS figure it for you, see the instructions for Form
+      1040, line 27.
+      <strong>Special rule for separated spouses.</strong> You can claim the EIC if you are married, not
+      filing a joint return,
+      had a qualifying child who lived with you for more than half of {{ year }}, and either of the following
+      applies.
+      • You lived apart from your spouse for the last 6 months of {{ year }}, or
+      • You are legally separated according to your state law under a written separation agreement or a decree
+      of separate maintenance and you didn’t live in the same household as your spouse at the end of {{ year }}.
+      If you meet these requirements, check the box at the top of Schedule EIC.
+      <strong>Qualifying child doesn’t have an SSN.</strong> If you have a child who meets the conditions to
+      be your qualifying
+      child for purposes of
+    </p>
+    <p style="margin-top: 8px; margin-left: 32px;">
+      claiming the EIC, but that child doesn’t have an SSN as defined in the instructions for Form 1040, line
+      27, and you are otherwise eligible, you can claim the self-only EIC. To claim the self-only EIC with a
+      qualifying child, complete and attach Schedule EIC to your Form 1040 or 1040-SR. Complete line 1 and
+      lines 2 through 6 for Child 1. If Child 1 has an ITIN, an ATIN, or an SSN that is not considered a valid
+      SSN as defined in the instructions for Form 1040, line 27, enter it on line 2. Otherwise, leave line 2
+      blank.
+      <strong>Taking the EIC when not eligible.</strong> If you take the EIC even though you are not eligible
+      and it is
+      determined that your error is due to reckless or intentional disregard of the EIC rules, you will not be
+      allowed to take the credit for 2 years even if you are otherwise eligible to do so. If you fraudulently
+      take the EIC, you will not be allowed to take the credit for 10 years. You may also have to pay
+      penalties.
+      <strong>Future developments.</strong> For the latest information about developments related to Schedule
+      EIC (Form 1040)
+      and its instructions, such as legislation enacted after they were published, go to
+      www.irs.gov/ScheduleEIC.
+    </p>
+  </div>
+
+
+  <div class="flex-column"
+       style="align-items: center; text-align: center; border-bottom: 1px solid black; position: relative;">
+    <p style="font-size: 32px; font-weight: 600;">Qualifying Child</p>
+    <p style="font-size: 24px; font-weight: 600; margin-top: 12px;">A qualifying child for the EIC is a child
+      who is your...</p>
+    <p style="margin-top: 12px; margin-bottom: 12px;">Son, daughter, stepchild, eligible foster child, brother,
+      sister, stepbrother,
+      stepsister, half brother,
+      half sister, or <br/> a descendant of any of them (for example, your grandchild, niece, or nephew)</p>
+
+    <img src="{% static 'img/forms/arrow.jpg' %}" style="position: absolute; bottom: -51px; height: 50px;"/>
+  </div>
+
+
+  <div class="flex-column"
+       style="align-items: center; text-align: center; border-bottom: 1px solid black; position: relative;">
+    <p style="font-size: 24px; font-weight: 600; margin-top: 52px;">was...</p>
+    <p style="margin-top: 12px; margin-bottom: 12px;">Under age 19 at the end of {{ year }} and younger than you (or
+      your spouse, if filing jointly) <br/> or <br/>Under age 24 at the end of {{ year }}, a student, and younger
+      than you (or your spouse, if filing jointly) <br/> or <br/> Any age and permanently and totally
+      disabled</p>
+
+    <img src="{% static 'img/forms/arrow.jpg' %}" style="position: absolute; bottom: -51px; height: 50px;"/>
+  </div>
+
+
+  <div class="flex-column"
+       style="align-items: center; text-align: center; border-bottom: 1px solid black; position: relative;">
+    <p style="margin-top: 52px;">Who is not filing a joint return for {{ year }}<br/> or is filing a joint return for
+      {{ year }}
+      only to claim<br/> a refund of withheld income tax or estimated tax paid</p>
+
+    <img src="{% static 'img/forms/arrow.jpg' %}" style="position: absolute; bottom: -51px; height: 50px;"/>
+  </div>
+
+
+  <div style="border-bottom: 5px solid black;">
+    <div class="flex-column" style="align-items: center; text-align: center; width: 40%; margin: 5px auto;">
+      <p style="margin-top: 52px;">Who lived with you in the United States for more than half of {{ year }}.</p>
+      <div class="flex-row" style="margin-top: 24px;">
+        <img src="{% static 'img/forms/Screenshot 2024-05-01 at 2.58.43 PM.jpg' %}" style="height: 80px;"/>
+        <em style="text-align: start; margin-left: 24px;">You can’t claim the EIC for a child who didn’t
+          live
+          with you for more than half of the year, even if
+          you paid most of the child’s living expenses. The IRS may ask you for documents to show you
+          lived
+          with each qualifying child. Documents you might want to keep for this purpose include school and
+          childcare records and other records that show your child’s address.</em>
+      </div>
+
+      <div class="flex-row" style="margin-top: 24px; border-bottom: 1px solid black;">
+        <img src="{% static 'img/forms/img.png' %}" style="height: 80px;"/>
+        <em style="text-align: start; margin-left: 24px;">If the child didn’t live with you for more than
+          half
+          of the year because of a temporary absence, birth, death, or kidnapping, see Exception to time
+          lived
+          with you in the instructions for Form 1040, line 27.</em>
+      </div>
+
+      <div class="flex-row" style="margin-top: 24px;">
+        <img src="{% static 'img/forms/Screenshot 2024-05-01 at 2.58.43 PM.jpg' %}" style="height: 80px;"/>
+        <em style="text-align: start; margin-left: 24px;">If the child was married or meets the conditions
+          to be
+          a qualifying child of another person (other than your spouse, if filing a joint return), special
+          rules apply. For details, see Married child or Qualifying child of more than one person in the
+          instructions for Form 1040, line 27.</em>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+</body>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll(".char-box");
+
+        inputs.forEach((input, index) => {
+            input.addEventListener("input", () => {
+                if (input.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus(); // Move to the next input box
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a2"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a3"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a4"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a5"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = document.querySelectorAll('input[name="4a6"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== checkbox) cb.checked = false; // Uncheck all other checkboxes.
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+</html>

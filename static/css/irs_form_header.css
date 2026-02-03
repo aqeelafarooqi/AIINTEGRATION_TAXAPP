@@ -1,0 +1,188 @@
+.irs-header-container {
+  max-width: 850px !important;
+  margin: 0 auto 20px auto !important;
+  background-color: #fff !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  border: 2px solid #000 !important;
+  border-bottom: none !important;
+  box-sizing: border-box !important;
+}
+
+.irs-header-top {
+  display: flex !important;
+  border-bottom: 2px solid #000 !important;
+  padding: 10px !important;
+  background-color: #fff !important;
+}
+
+.irs-header-left {
+  width: 22% !important;
+  padding-right: 10px !important;
+  border-right: 2px solid #000 !important;
+}
+
+.irs-form-name {
+  font-size: 13pt !important;
+  font-weight: bold !important;
+  margin-bottom: 5px !important;
+  color: #000 !important;
+  line-height: 1.2 !important;
+}
+
+.irs-dept-info {
+  font-size: 7pt !important;
+  line-height: 1.2 !important;
+  color: #000 !important;
+}
+
+.irs-header-center {
+  flex: 1 !important;
+  padding: 0 15px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.irs-form-title {
+  font-size: 15pt !important;
+  font-weight: bold !important;
+  margin-bottom: 5px !important;
+  color: #000 !important;
+  line-height: 1.3 !important;
+}
+
+.irs-form-help {
+  font-size: 8pt !important;
+  line-height: 1.4 !important;
+  color: #000 !important;
+}
+
+.irs-header-right {
+  width: 22% !important;
+  padding-left: 10px !important;
+  border-left: 2px solid #000 !important;
+  text-align: right !important;
+}
+
+.irs-omb-number {
+  font-size: 7pt !important;
+  margin-bottom: 5px !important;
+  padding-bottom: 5px !important;
+  border-bottom: 1px solid #000 !important;
+  color: #000 !important;
+}
+
+.irs-tax-year {
+  font-size: 28pt !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  margin: 8px 0 !important;
+  color: #000 !important;
+}
+
+.irs-attachment {
+  font-size: 7pt !important;
+  line-height: 1.2 !important;
+  margin-top: 5px !important;
+  color: #000 !important;
+}
+
+.irs-header-name-row {
+  display: flex !important;
+  border-bottom: 2px solid #000 !important;
+  padding: 8px 10px !important;
+  background-color: #fff !important;
+}
+
+.irs-header-name-section {
+  flex: 1 !important;
+  padding-right: 15px !important;
+}
+
+.irs-header-ssn-section {
+  width: 280px !important;
+  padding-left: 15px !important;
+  border-left: 2px solid #000 !important;
+  text-align: left !important;
+}
+
+.irs-label {
+  font-size: 8pt !important;
+  font-weight: bold !important;
+  margin-bottom: 4px !important;
+  color: #000 !important;
+}
+
+.irs-value {
+  font-size: 10pt !important;
+  font-weight: bold !important;
+  color: #0033CC !important;
+  min-height: 20px !important;
+  padding: 2px 0 !important;
+}
+
+@media screen and (max-width: 900px) {
+  .irs-header-container {
+    max-width: 100% !important;
+    margin: 0 10px 20px 10px !important;
+  }
+
+  .irs-header-top {
+    flex-direction: column !important;
+  }
+
+  .irs-header-left,
+  .irs-header-center,
+  .irs-header-right {
+    width: 100% !important;
+    border: none !important;
+    border-bottom: 1px solid #000 !important;
+    padding: 10px !important;
+    text-align: center !important;
+  }
+
+  .irs-header-right {
+    text-align: center !important;
+  }
+
+  .irs-omb-number {
+    text-align: center !important;
+  }
+
+  .irs-header-name-row {
+    flex-direction: column !important;
+  }
+
+  .irs-header-name-section,
+  .irs-header-ssn-section {
+    width: 100% !important;
+    border: none !important;
+    padding: 10px 0 !important;
+  }
+
+  .irs-header-ssn-section {
+    border-top: 1px solid #ccc !important;
+    margin-top: 10px !important;
+    padding-top: 10px !important;
+  }
+}
+
+@media print {
+  .irs-header-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border: 2px solid #000 !important;
+    border-bottom: none !important;
+    page-break-after: avoid !important;
+  }
+
+  .irs-header-top,
+  .irs-header-name-row {
+    page-break-inside: avoid !important;
+  }
+
+  .irs-value {
+    color: #000 !important;
+  }
+}

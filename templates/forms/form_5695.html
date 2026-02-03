@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 5695 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_5695.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-5695-container">
+  <div class="form-5695-top-header">
+    <div class="form-5695-top-left">
+      <div class="form-5695-form-label">Form 5695</div>
+      <div class="form-5695-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-5695-top-center">
+      <div class="form-5695-main-title">Residential Energy Credits</div>
+      <div class="form-5695-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="form-5695-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form5695" target="_blank">www.irs.gov/Form5695</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-5695-top-right">
+      <div class="form-5695-omb-line">OMB No. 1545-0074</div>
+      <div class="form-5695-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-5695-name-row">
+    <div class="form-5695-name-box" style="flex: 3;">
+      <div class="form-5695-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-5695-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-5695-ssn-box">
+      <div class="form-5695-name-label">Your social security number</div>
+      <input type="text" class="form-5695-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-5695-part-header">
+    Part I - Residential Clean Energy Credit
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">1</span>
+      <span class="form-5695-line-text">Qualified solar electric property costs (see instructions)</span>
+      <span class="form-5695-line-box">1</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">2</span>
+      <span class="form-5695-line-text">Qualified solar water heating property costs (see instructions)</span>
+      <span class="form-5695-line-box">2</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">3</span>
+      <span class="form-5695-line-text">Qualified small wind energy property costs (see instructions)</span>
+      <span class="form-5695-line-box">3</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">4</span>
+      <span class="form-5695-line-text">Qualified geothermal heat pump property costs (see instructions)</span>
+      <span class="form-5695-line-box">4</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">5</span>
+      <span class="form-5695-line-text">Qualified battery storage technology costs (see instructions)</span>
+      <span class="form-5695-line-box">5</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">6a</span>
+      <span class="form-5695-line-text">Add lines 1 through 5</span>
+      <span class="form-5695-line-box">6a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'6a'|field_id }}" value="{{ fields|get_item:'6a'|field_value|default:'' }}" {% field_readonly fields|get_item:'6a' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">6b</span>
+      <span class="form-5695-line-text">Multiply line 6a by 30% (0.30)</span>
+      <span class="form-5695-line-box">6b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'6b'|field_id }}" value="{{ fields|get_item:'6b'|field_value|default:'' }}" {% field_readonly fields|get_item:'6b' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">7</span>
+      <span class="form-5695-line-text">Qualified fuel cell property costs (see instructions)</span>
+      <span class="form-5695-line-box">7</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">8</span>
+      <span class="form-5695-line-text">Enter the kilowatt capacity of the property on line 7 above (see instructions)</span>
+      <span class="form-5695-line-box">8</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">9</span>
+      <span class="form-5695-line-text">Multiply line 8 by $1,000</span>
+      <span class="form-5695-line-box">9</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">10</span>
+      <span class="form-5695-line-text">Enter the smaller of line 7 or line 9</span>
+      <span class="form-5695-line-box">10</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">11</span>
+      <span class="form-5695-line-text">Multiply line 10 by 30% (0.30)</span>
+      <span class="form-5695-line-box">11</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">12</span>
+      <span class="form-5695-line-text">Add lines 6b and 11</span>
+      <span class="form-5695-line-box">12</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">13</span>
+      <span class="form-5695-line-text">Limitation based on tax liability (see instructions)</span>
+      <span class="form-5695-line-box">13</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" {% field_readonly fields|get_item:'13' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">14</span>
+      <span class="form-5695-line-text">Enter credits from Schedule 3 (Form 1040), lines 1, 2, 3, 4, 6a-6l (see instructions)</span>
+      <span class="form-5695-line-box">14</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">15</span>
+      <span class="form-5695-line-text">Subtract line 14 from line 13. If zero or less, enter -0-</span>
+      <span class="form-5695-line-box">15</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+
+    <div class="form-5695-form-line form-5695-total-line">
+      <span class="form-5695-line-num">16</span>
+      <span class="form-5695-line-text"><strong>Residential clean energy credit.</strong> Enter the smaller of line 12 or line 15. Also include this amount on Schedule 3 (Form 1040), line 5</span>
+      <span class="form-5695-line-box">16</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+  </div>
+
+  <div class="form-5695-part-header">
+    Part II - Energy Efficient Home Improvement Credit
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-checkbox-line">
+      <span class="form-5695-line-num">17a</span>
+      <input type="checkbox" class="form-5695-checkbox" name="{{ fields|get_item:'17a'|field_id }}" {% if fields|get_item:'17a'|field_value %}checked{% endif %}>
+      <span class="form-5695-line-text">Check this box if you are claiming credit for energy efficient improvements to your home located in the United States</span>
+    </div>
+
+    <div class="form-5695-checkbox-line">
+      <span class="form-5695-line-num">17b</span>
+      <input type="checkbox" class="form-5695-checkbox" name="{{ fields|get_item:'17b'|field_id }}" {% if fields|get_item:'17b'|field_value %}checked{% endif %}>
+      <span class="form-5695-line-text">Check this box if you are the original user of the improvements</span>
+    </div>
+  </div>
+
+  <div class="form-5695-subheader">
+    Building Envelope Components (See instructions for limits)
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">18a</span>
+      <span class="form-5695-line-text">Costs for exterior doors (max $250/door; see instructions)</span>
+      <span class="form-5695-line-box">18a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'18a'|field_id }}" value="{{ fields|get_item:'18a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">18b</span>
+      <span class="form-5695-line-text">Multiply line 18a by 30% (0.30)</span>
+      <span class="form-5695-line-box">18b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'18b'|field_id }}" value="{{ fields|get_item:'18b'|field_value|default:'' }}" {% field_readonly fields|get_item:'18b' %}>
+    </div>
+
+    <div class="form-5695-info-text">
+      <strong>18c</strong> Maximum credit for exterior doors: $500
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">18d</span>
+      <span class="form-5695-line-text">Enter the smaller of line 18b or $500</span>
+      <span class="form-5695-line-box">18d</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'18d'|field_id }}" value="{{ fields|get_item:'18d'|field_value|default:'' }}" {% field_readonly fields|get_item:'18d' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">19a</span>
+      <span class="form-5695-line-text">Costs for exterior windows and skylights (see instructions)</span>
+      <span class="form-5695-line-box">19a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'19a'|field_id }}" value="{{ fields|get_item:'19a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">19b</span>
+      <span class="form-5695-line-text">Multiply line 19a by 30% (0.30)</span>
+      <span class="form-5695-line-box">19b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'19b'|field_id }}" value="{{ fields|get_item:'19b'|field_value|default:'' }}" {% field_readonly fields|get_item:'19b' %}>
+    </div>
+
+    <div class="form-5695-info-text">
+      <strong>19c</strong> Maximum credit for windows and skylights: $600
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">19d</span>
+      <span class="form-5695-line-text">Enter the smaller of line 19b or $600</span>
+      <span class="form-5695-line-box">19d</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'19d'|field_id }}" value="{{ fields|get_item:'19d'|field_value|default:'' }}" {% field_readonly fields|get_item:'19d' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">20a</span>
+      <span class="form-5695-line-text">Costs for insulation material or systems and air sealing (see instructions)</span>
+      <span class="form-5695-line-box">20a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'20a'|field_id }}" value="{{ fields|get_item:'20a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">20b</span>
+      <span class="form-5695-line-text">Multiply line 20a by 30% (0.30)</span>
+      <span class="form-5695-line-box">20b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'20b'|field_id }}" value="{{ fields|get_item:'20b'|field_value|default:'' }}" {% field_readonly fields|get_item:'20b' %}>
+    </div>
+
+    <div class="form-5695-info-text">
+      <strong>20c</strong> Maximum credit for insulation: $1,200
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">20d</span>
+      <span class="form-5695-line-text">Enter the smaller of line 20b or $1,200</span>
+      <span class="form-5695-line-box">20d</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'20d'|field_id }}" value="{{ fields|get_item:'20d'|field_value|default:'' }}" {% field_readonly fields|get_item:'20d' %}>
+    </div>
+  </div>
+
+  <div class="form-5695-subheader">
+    Home Energy Audits
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">21a</span>
+      <span class="form-5695-line-text">Home energy audit costs (see instructions)</span>
+      <span class="form-5695-line-box">21a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'21a'|field_id }}" value="{{ fields|get_item:'21a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">21b</span>
+      <span class="form-5695-line-text">Multiply line 21a by 30% (0.30)</span>
+      <span class="form-5695-line-box">21b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'21b'|field_id }}" value="{{ fields|get_item:'21b'|field_value|default:'' }}" {% field_readonly fields|get_item:'21b' %}>
+    </div>
+
+    <div class="form-5695-info-text">
+      <strong>21c</strong> Maximum credit for home energy audits: $150
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">21d</span>
+      <span class="form-5695-line-text">Enter the smaller of line 21b or $150</span>
+      <span class="form-5695-line-box">21d</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'21d'|field_id }}" value="{{ fields|get_item:'21d'|field_value|default:'' }}" {% field_readonly fields|get_item:'21d' %}>
+    </div>
+  </div>
+
+  <div class="form-5695-subheader">
+    Residential Energy Property Expenditures
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">22a</span>
+      <span class="form-5695-line-text">Costs for: Electric or natural gas heat pump water heaters; electric or natural gas heat pumps; central air conditioners; natural gas, propane, or oil water heaters; natural gas, propane, or oil furnaces or hot water boilers</span>
+      <span class="form-5695-line-box">22a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'22a'|field_id }}" value="{{ fields|get_item:'22a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">22b</span>
+      <span class="form-5695-line-text">Multiply line 22a by 30% (0.30). Enter the result, but not more than $2,000</span>
+      <span class="form-5695-line-box">22b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'22b'|field_id }}" value="{{ fields|get_item:'22b'|field_value|default:'' }}" {% field_readonly fields|get_item:'22b' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">23a</span>
+      <span class="form-5695-line-text">Costs for: Biomass stoves and biomass boilers</span>
+      <span class="form-5695-line-box">23a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'23a'|field_id }}" value="{{ fields|get_item:'23a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">23b</span>
+      <span class="form-5695-line-text">Multiply line 23a by 30% (0.30). Enter the result, but not more than $2,000</span>
+      <span class="form-5695-line-box">23b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'23b'|field_id }}" value="{{ fields|get_item:'23b'|field_value|default:'' }}" {% field_readonly fields|get_item:'23b' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">24a</span>
+      <span class="form-5695-line-text">Add lines 22a and 23a</span>
+      <span class="form-5695-line-box">24a</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'24a'|field_id }}" value="{{ fields|get_item:'24a'|field_value|default:'' }}" {% field_readonly fields|get_item:'24a' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">24b</span>
+      <span class="form-5695-line-text">Add lines 22b and 23b</span>
+      <span class="form-5695-line-box">24b</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'24b'|field_id }}" value="{{ fields|get_item:'24b'|field_value|default:'' }}" {% field_readonly fields|get_item:'24b' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">28</span>
+      <span class="form-5695-line-text">Enter amount from line 24b</span>
+      <span class="form-5695-line-box">28</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'28'|field_id }}" value="{{ fields|get_item:'28'|field_value|default:'' }}" {% field_readonly fields|get_item:'28' %}>
+    </div>
+  </div>
+
+  <div class="form-5695-subheader">
+    Total Energy Efficient Home Improvement Credit
+  </div>
+
+  <div class="form-5695-section">
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">29</span>
+      <span class="form-5695-line-text">Add lines 18d, 19d, 20d, 21d, and 28</span>
+      <span class="form-5695-line-box">29</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'29'|field_id }}" value="{{ fields|get_item:'29'|field_value|default:'' }}" {% field_readonly fields|get_item:'29' %}>
+    </div>
+
+    <div class="form-5695-info-text">
+      <strong>30</strong> Maximum credit: $3,200 (see instructions for additional limits)
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">31</span>
+      <span class="form-5695-line-text">Enter the smaller of line 29 or $3,200</span>
+      <span class="form-5695-line-box">31</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'31'|field_id }}" value="{{ fields|get_item:'31'|field_value|default:'' }}" {% field_readonly fields|get_item:'31' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">32</span>
+      <span class="form-5695-line-text">Limitation based on tax liability (see instructions)</span>
+      <span class="form-5695-line-box">32</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'32'|field_id }}" value="{{ fields|get_item:'32'|field_value|default:'' }}" {% field_readonly fields|get_item:'32' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">33</span>
+      <span class="form-5695-line-text">Enter Form 1040, line 19, plus line 16 above</span>
+      <span class="form-5695-line-box">33</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'33'|field_id }}" value="{{ fields|get_item:'33'|field_value|default:'' }}" {% field_readonly fields|get_item:'33' %}>
+    </div>
+
+    <div class="form-5695-form-line">
+      <span class="form-5695-line-num">34</span>
+      <span class="form-5695-line-text">Subtract line 33 from line 32. If zero or less, enter -0-</span>
+      <span class="form-5695-line-box">34</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'34'|field_id }}" value="{{ fields|get_item:'34'|field_value|default:'' }}" {% field_readonly fields|get_item:'34' %}>
+    </div>
+
+    <div class="form-5695-form-line form-5695-total-line">
+      <span class="form-5695-line-num">35</span>
+      <span class="form-5695-line-text"><strong>Energy efficient home improvement credit.</strong> Enter the smaller of line 31 or line 34. Also include this amount on Schedule 3 (Form 1040), line 5</span>
+      <span class="form-5695-line-box">35</span>
+      <input type="text" class="form-5695-line-input irs-line-input" name="{{ fields|get_item:'35'|field_id }}" value="{{ fields|get_item:'35'|field_value|default:'' }}" {% field_readonly fields|get_item:'35' %}>
+    </div>
+  </div>
+
+  <div class="form-5695-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 13540P
+    </div>
+    <div>
+      <strong>Form 5695 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

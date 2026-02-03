@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule H - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/schedule_h.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="schedule-h-container">
+  <div class="schedule-h-top-header">
+    <div class="schedule-h-top-left">
+      <div class="schedule-h-form-label">SCHEDULE H</div>
+      <div class="schedule-h-form-subtitle">(Form 1040)</div>
+      <div class="schedule-h-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-h-top-center">
+      <div class="schedule-h-main-title">Household Employment Taxes</div>
+      <div class="schedule-h-attach-note">(For Social Security, Medicare, Withheld Income, and Federal Unemployment (FUTA) Taxes)</div>
+      <div class="schedule-h-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, 1040-NR, 1040-SS, or 1041.</strong></div>
+      <div class="schedule-h-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/ScheduleH" target="_blank">www.irs.gov/ScheduleH</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-h-top-right">
+      <div class="schedule-h-omb-line">OMB No. 1545-1971</div>
+      <div class="schedule-h-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="schedule-h-name-row">
+    <div class="schedule-h-name-box" style="flex: 2;">
+      <div class="schedule-h-name-label">Name of employer</div>
+      <input type="text" class="schedule-h-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="schedule-h-ssn-box">
+      <div class="schedule-h-name-label">Social security number</div>
+      <input type="text" class="schedule-h-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+    <div class="schedule-h-ein-box">
+      <div class="schedule-h-name-label">Employer identification number</div>
+      <input type="text" class="schedule-h-name-input" name="{{ fields|get_item:'ein'|field_id }}" value="{{ fields|get_item:'ein'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="schedule-h-note">
+    <strong>Calendar year taxpayers:</strong> Enter the year above that you are filing for.
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">A</span>
+      <span class="schedule-h-line-text">Did you pay any one household employee cash wages of $2,700 or more in {{ year }}? (If any household employee was your spouse, your child under age 21, your parent, or anyone under age 18, see the line A instructions before you answer this question.)</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_A" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'A'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_A" value="no" class="schedule-h-checkbox" {% if fields|get_item:'A'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">B</span>
+      <span class="schedule-h-line-text">Did you withhold federal income tax during {{ year }} for any household employee?</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_B" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'B'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_B" value="no" class="schedule-h-checkbox" {% if fields|get_item:'B'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">C</span>
+      <span class="schedule-h-line-text">Did you pay total cash wages of $1,000 or more in any calendar quarter of {{ year|add:"-1" }} or {{ year }} to all household employees? (Don't count cash wages paid in {{ year|add:"-1" }} or {{ year }} to your spouse, your child under age 21, or your parent.)</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_C" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'C'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_C" value="no" class="schedule-h-checkbox" {% if fields|get_item:'C'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-h-part-header">
+    Part I - Social Security, Medicare, and Federal Income Taxes
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">1</span>
+      <span class="schedule-h-line-text">Total cash wages subject to social security tax (see instructions)</span>
+      <span class="schedule-h-line-box">1</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">2</span>
+      <span class="schedule-h-line-text">Social security tax. Multiply line 1 by 12.4% (0.124)</span>
+      <span class="schedule-h-line-box">2</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">3</span>
+      <span class="schedule-h-line-text">Total cash wages subject to Medicare tax (see instructions)</span>
+      <span class="schedule-h-line-box">3</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">4</span>
+      <span class="schedule-h-line-text">Medicare tax. Multiply line 3 by 2.9% (0.029)</span>
+      <span class="schedule-h-line-box">4</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" {% field_readonly fields|get_item:'4' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">5</span>
+      <span class="schedule-h-line-text">Total cash wages subject to Additional Medicare Tax withholding (see instructions)</span>
+      <span class="schedule-h-line-box">5</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">6</span>
+      <span class="schedule-h-line-text">Additional Medicare Tax withholding. Multiply line 5 by 0.9% (0.009)</span>
+      <span class="schedule-h-line-box">6</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">7</span>
+      <span class="schedule-h-line-text">Federal income tax withheld, if any</span>
+      <span class="schedule-h-line-box">7</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-total-line">
+      <span class="schedule-h-line-num">8</span>
+      <span class="schedule-h-line-text"><strong>Total social security, Medicare, and federal income taxes.</strong> Add lines 2, 4, 6, and 7</span>
+      <span class="schedule-h-line-box">8</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+  </div>
+
+  <div class="schedule-h-part-header">
+    Part II - Federal Unemployment (FUTA) Tax
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">9</span>
+      <span class="schedule-h-line-text">Did you pay unemployment contributions to only one state? If you paid contributions to a credit reduction state, see instructions and check "No"</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_9" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'9'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_9" value="no" class="schedule-h-checkbox" {% if fields|get_item:'9'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">10</span>
+      <span class="schedule-h-line-text">Did you pay all state unemployment contributions for {{ year }} by April 15, {{ year|add:"1" }}? Fiscal year filers, see instructions</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_10" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'10'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_10" value="no" class="schedule-h-checkbox" {% if fields|get_item:'10'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">11</span>
+      <span class="schedule-h-line-text">Were all wages that are taxable for FUTA tax also taxable for your state's unemployment tax?</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_11" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'11'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_11" value="no" class="schedule-h-checkbox" {% if fields|get_item:'11'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+
+    <div class="schedule-h-note">
+      If you checked the "Yes" box on all lines above, complete Section A. If you checked the "No" box on any line, skip Section A and complete Section B.
+    </div>
+  </div>
+
+  <div class="schedule-h-subheader">
+    Section A
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">12</span>
+      <span class="schedule-h-line-text">Name of the state where you paid unemployment contributions ▶</span>
+      <input type="text" class="schedule-h-text-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" style="width: 100px;">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">13</span>
+      <span class="schedule-h-line-text">Contributions paid to your state unemployment fund</span>
+      <span class="schedule-h-line-box">13</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">14</span>
+      <span class="schedule-h-line-text">Total cash wages subject to FUTA tax (see instructions)</span>
+      <span class="schedule-h-line-box">14</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-total-line">
+      <span class="schedule-h-line-num">15</span>
+      <span class="schedule-h-line-text"><strong>FUTA tax.</strong> Multiply line 14 by 0.6% (0.006). Enter the result here, skip Section B, and go to line 25</span>
+      <span class="schedule-h-line-box">15</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+  </div>
+
+  <div class="schedule-h-subheader">
+    Section B
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">16</span>
+      <span class="schedule-h-line-text">Complete all columns below that apply (if you need more space, see instructions):</span>
+    </div>
+
+    <div class="schedule-h-note">
+      For Section B with multiple states, enter totals from the worksheet in the instructions.
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">17</span>
+      <span class="schedule-h-line-text">Total from line 16, column (g)</span>
+      <span class="schedule-h-line-box">17</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'17_total_g'|field_id }}" value="{{ fields|get_item:'17_total_g'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">18</span>
+      <span class="schedule-h-line-text">Total from line 16, column (h)</span>
+      <span class="schedule-h-line-box">18</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'17_total_h'|field_id }}" value="{{ fields|get_item:'17_total_h'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">19</span>
+      <span class="schedule-h-line-text">Add columns (g) and (h) of line 18</span>
+      <span class="schedule-h-line-box">19</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" {% field_readonly fields|get_item:'19' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">20</span>
+      <span class="schedule-h-line-text">Total cash wages subject to FUTA tax (see line 14 instructions)</span>
+      <span class="schedule-h-line-box">20</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">21</span>
+      <span class="schedule-h-line-text">Multiply line 20 by 6.0% (0.06)</span>
+      <span class="schedule-h-line-box">21</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}" {% field_readonly fields|get_item:'21' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">22</span>
+      <span class="schedule-h-line-text">Multiply line 20 by 5.4% (0.054)</span>
+      <span class="schedule-h-line-box">22</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'22'|field_id }}" value="{{ fields|get_item:'22'|field_value|default:'' }}" {% field_readonly fields|get_item:'22' %}>
+    </div>
+
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">23</span>
+      <span class="schedule-h-line-text">Enter the smaller of line 19 or line 22</span>
+      <span class="schedule-h-line-box">23</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}" {% field_readonly fields|get_item:'23' %}>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-total-line">
+      <span class="schedule-h-line-num">24</span>
+      <span class="schedule-h-line-text"><strong>FUTA tax.</strong> Subtract line 23 from line 21. Enter the result here and go to line 25</span>
+      <span class="schedule-h-line-box">24</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'24'|field_id }}" value="{{ fields|get_item:'24'|field_value|default:'' }}" {% field_readonly fields|get_item:'24' %}>
+    </div>
+  </div>
+
+  <div class="schedule-h-part-header">
+    Part III - Total Household Employment Taxes
+  </div>
+
+  <div class="schedule-h-section">
+    <div class="schedule-h-form-line">
+      <span class="schedule-h-line-num">25</span>
+      <span class="schedule-h-line-text">Enter the amount from line 8. If you checked the "Yes" box on line C of page 1, enter -0-</span>
+      <span class="schedule-h-line-box">25</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'25'|field_id }}" value="{{ fields|get_item:'25'|field_value|default:'' }}" {% field_readonly fields|get_item:'25' %}>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-total-line">
+      <span class="schedule-h-line-num">26</span>
+      <span class="schedule-h-line-text"><strong>Total household employment taxes.</strong> Add line 15 (or line 24) and line 25. Enter here and on Schedule 2 (Form 1040), line 9</span>
+      <span class="schedule-h-line-box">26</span>
+      <input type="text" class="schedule-h-line-input irs-line-input" name="{{ fields|get_item:'26'|field_id }}" value="{{ fields|get_item:'26'|field_value|default:'' }}" {% field_readonly fields|get_item:'26' %}>
+    </div>
+
+    <div class="schedule-h-form-line schedule-h-question-line">
+      <span class="schedule-h-line-num">27</span>
+      <span class="schedule-h-line-text">Are you required to file Form 1040?</span>
+      <div class="schedule-h-yes-no">
+        <label><input type="radio" name="line_27" value="yes" class="schedule-h-checkbox" {% if fields|get_item:'27'|field_value == 'yes' %}checked{% endif %}> Yes</label>
+        <label><input type="radio" name="line_27" value="no" class="schedule-h-checkbox" {% if fields|get_item:'27'|field_value == 'no' %}checked{% endif %}> No</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-h-note">
+    <strong>Note:</strong> If you answered "Yes" to line 27, stop here and include the amount from line 26 on Schedule 2 (Form 1040), line 9. If you answered "No," see the instructions for line 27.
+  </div>
+
+  <div class="schedule-h-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 12187K
+    </div>
+    <div>
+      <strong>Schedule H (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

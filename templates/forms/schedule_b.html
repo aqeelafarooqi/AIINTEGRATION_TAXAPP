@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule B - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_b.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="schedule-b-container">
+  <!-- Header -->
+  <div class="schedule-b-top-header">
+    <div class="schedule-b-top-left">
+      <div class="schedule-b-form-label">SCHEDULE B</div>
+      <div class="schedule-b-form-number">(Form 1040)</div>
+      <div class="schedule-b-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-b-top-center">
+      <div class="schedule-b-main-title">Interest and Ordinary Dividends</div>
+      <div class="schedule-b-attach-note"><strong>Attach to Form 1040 or 1040-SR.</strong></div>
+      <div class="schedule-b-web-link"><strong>Go to <em>www.irs.gov/ScheduleB</em> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-b-top-right">
+      <div class="schedule-b-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-b-year-large">{{ year }}</div>
+      <div class="schedule-b-attachment">Attachment<br>Sequence No. <strong>08</strong></div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="schedule-b-name-row">
+    <div class="schedule-b-name-label">
+      <strong>Name(s) shown on return</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+          and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="schedule-b-ssn-box">
+      <strong>Your social security number</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Main form table -->
+  <table class="schedule-b-main-table">
+    <tr>
+      <td class="schedule-b-left-column">
+        <div class="schedule-b-section-header">Part I<br>Interest</div>
+        <div class="schedule-b-section-note">
+          (See instructions and the instructions for Form 1040, line 2b.)<br><br>
+          <strong>Note:</strong> If you received a Form 1099-INT, Form 1099-OID, or substitute statement from a brokerage firm, list the firm's name as the payer and enter the total interest shown on that form.
+        </div>
+      </td>
+      <td class="schedule-b-middle-column">
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">1</span>
+          <span class="schedule-b-line-text">List name of payer. If any interest is from a seller-financed mortgage and the buyer used the property as a personal residence, see the instructions and list this interest first. Also, show that buyer's social security number and address:</span>
+        </div>
+        
+        <!-- 14 lines for payers and amounts -->
+        {% for i in "123456789ABCDE"|make_list %}
+          <div class="schedule-b-payer-line">
+            <div class="schedule-b-dotted-line"></div>
+            <div class="schedule-b-amount-box"></div>
+          </div>
+        {% endfor %}
+        
+        <div class="schedule-b-form-line schedule-b-total-line">
+          <span class="schedule-b-line-num">1</span>
+          <div class="schedule-b-amount-box-labeled"></div>
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">2</span>
+          <span class="schedule-b-line-text">Add the amounts on line 1 <span class="schedule-b-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-b-line-box">2</span>
+          <input type="text" class="schedule-b-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}"{% field_readonly fields|get_item:'2' %} {% field_disabled fields|get_item:'2' %} >
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">3</span>
+          <span class="schedule-b-line-text">Excludable interest on series EE and I U.S. savings bonds issued after 1989. Attach Form 8815 <span class="schedule-b-dots">. . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-b-line-box">3</span>
+          <input type="text" class="schedule-b-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}"{% field_readonly fields|get_item:'3' %} {% field_disabled fields|get_item:'3' %} >
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">4</span>
+          <span class="schedule-b-line-text">Subtract line 3 from line 2. Enter the result here and on Form 1040 or 1040-SR, line 2b</span>
+          <span class="schedule-b-line-box">4</span>
+          <input type="text" class="schedule-b-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}"{% field_readonly fields|get_item:'4' %} {% field_disabled fields|get_item:'4' %} >
+        </div>
+        
+        <div class="schedule-b-note-line">
+          <strong>Note:</strong> If line 4 is over $1,500, you must complete Part III.
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-b-left-column">
+        <div class="schedule-b-section-header">Part II<br>Ordinary<br>Dividends</div>
+        <div class="schedule-b-section-note">
+          (See instructions and the instructions for Form 1040, line 3b.)<br><br>
+          <strong>Note:</strong> If you received a Form 1099-DIV or substitute statement from a brokerage firm, list the firm's name as the payer and enter the ordinary dividends shown on that form.
+        </div>
+      </td>
+      <td class="schedule-b-middle-column">
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">5</span>
+          <span class="schedule-b-line-text">List name of payer: <span class="schedule-b-underline">____________________________________________________</span></span>
+        </div>
+        
+        <!-- 14 lines for payers and amounts -->
+        {% for i in "123456789ABCDE"|make_list %}
+          <div class="schedule-b-payer-line">
+            <div class="schedule-b-dotted-line"></div>
+            <div class="schedule-b-amount-box"></div>
+          </div>
+        {% endfor %}
+        
+        <div class="schedule-b-form-line schedule-b-total-line">
+          <span class="schedule-b-line-num">5</span>
+          <div class="schedule-b-amount-box-labeled"></div>
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">6</span>
+          <span class="schedule-b-line-text">Add the amounts on line 5. Enter the total here and on Form 1040 or 1040-SR, line 3b</span>
+          <span class="schedule-b-line-box">6</span>
+          <input type="text" class="schedule-b-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}"{% field_readonly fields|get_item:'6' %} {% field_disabled fields|get_item:'6' %} >
+        </div>
+        
+        <div class="schedule-b-note-line">
+          <strong>Note:</strong> If line 6 is over $1,500, you must complete Part III.
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-b-left-column">
+        <div class="schedule-b-section-header">Part III<br>Foreign<br>Accounts<br>and Trusts</div>
+        <div class="schedule-b-section-note">
+          <strong>Caution:</strong> If required, failure to file FinCEN Form 114 may result in substantial penalties. Additionally, you may be required to file Form 8938, Statement of Specified Foreign Financial Assets. See instructions.
+        </div>
+      </td>
+      <td class="schedule-b-middle-column">
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-text" style="font-weight: normal;">You must complete this part if you (a) had over $1,500 of taxable interest or ordinary dividends; (b) had a foreign account; or (c) received a distribution from, or were a grantor of, or a transferor to, a foreign trust.</span>
+        </div>
+        
+        <div class="schedule-b-yes-no-container">
+          <div class="schedule-b-yes-no-labels">
+            <span class="schedule-b-yes-label">Yes</span>
+            <span class="schedule-b-no-label">No</span>
+          </div>
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">7a</span>
+          <span class="schedule-b-line-text">At any time during 2024, did you have a financial interest in or signature authority over a financial account (such as a bank account, securities account, or brokerage account) located in a foreign country? See instructions <span class="schedule-b-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <div class="schedule-b-yes-no-boxes">
+            <input type="checkbox" class="schedule-b-checkbox-yes">
+            <input type="checkbox" class="schedule-b-checkbox-no">
+          </div>
+        </div>
+        
+        <div class="schedule-b-form-line schedule-b-indent">
+          <span class="schedule-b-line-text">If "Yes," are you required to file FinCEN Form 114, Report of Foreign Bank and Financial Accounts (FBAR), to report that financial interest or signature authority? See FinCEN Form 114 and its instructions for filing requirements and exceptions to those requirements <span class="schedule-b-dots">. . .</span></span>
+        </div>
+        
+        <div class="schedule-b-form-line">
+          <span class="schedule-b-line-num">b</span>
+          <span class="schedule-b-line-text">If you are required to file FinCEN Form 114, list the name(s) of the foreign country(-ies) where the financial account(s) is (are) located: <span class="schedule-b-underline">_________________________________</span></span>
+        </div>
+        
+        <div class="schedule-b-form-line" style="margin-top: 10px;">
+          <span class="schedule-b-line-num">8</span>
+          <span class="schedule-b-line-text">During 2024, did you receive a distribution from, or were you the grantor of, or transferor to, a foreign trust? If "Yes," you may have to file Form 3520. See instructions <span class="schedule-b-dots">. . . . . . .</span></span>
+          <div class="schedule-b-yes-no-boxes">
+            <input type="checkbox" class="schedule-b-checkbox-yes">
+            <input type="checkbox" class="schedule-b-checkbox-no">
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="schedule-b-footer">
+    <div class="schedule-b-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div class="schedule-b-footer-center">
+      Cat. No. 17146N
+    </div>
+    <div class="schedule-b-footer-right">
+      <strong>Schedule B (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

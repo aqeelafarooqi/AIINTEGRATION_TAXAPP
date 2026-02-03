@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}EIC Worksheet B - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/eic_worksheet_b.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="eic-ws-b-container">
+  <div class="eic-ws-b-top-header">
+    <div class="eic-ws-b-top-left">
+      <div class="eic-ws-b-form-label">EIC Worksheet B</div>
+      <div class="eic-ws-b-form-subtitle">Line 27</div>
+    </div>
+    <div class="eic-ws-b-top-center">
+      <div class="eic-ws-b-main-title">Earned Income Credit Worksheet B</div>
+      <div class="eic-ws-b-subtitle">Filers Who Do NOT Have a Qualifying Child</div>
+      <div class="eic-ws-b-attach-note"><strong>▶ Complete this worksheet to figure your Earned Income Credit (EIC) for Form 1040, line 27</strong></div>
+    </div>
+    <div class="eic-ws-b-top-right">
+      <div class="eic-ws-b-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="eic-ws-b-name-row">
+    <div style="flex: 1;">
+      <div class="eic-ws-b-name-label">Taxpayer Name</div>
+      <div class="eic-ws-b-name-value">{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}</div>
+    </div>
+    <div style="width: 200px;">
+      <div class="eic-ws-b-name-label">SSN</div>
+      <div class="eic-ws-b-name-value">{{ taxpayer_obj.ssn|default:'' }}</div>
+    </div>
+  </div>
+
+  <div class="eic-ws-b-note">
+    <strong>Before you begin:</strong> Be sure you have read the EIC rules in the instructions to find out if you can take the credit.
+    Use this worksheet if you do not have a qualifying child.
+  </div>
+
+  <div class="eic-ws-b-section-header">
+    Step 1 - Earned Income and AGI
+  </div>
+
+  <div class="eic-ws-b-section">
+    <div class="eic-ws-b-form-line">
+      <span class="eic-ws-b-line-num">1</span>
+      <span class="eic-ws-b-line-text">Enter your earned income from Step 5, Earned Income Worksheet, line 7 (or Form 1040, line 1z if you have no self-employment income)</span>
+      <span class="eic-ws-b-line-box">1</span>
+      <input type="text" class="eic-ws-b-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}" {% field_readonly fields|get_item:'1' %}>
+    </div>
+
+    <div class="eic-ws-b-form-line eic-ws-b-calculation-line">
+      <span class="eic-ws-b-line-num">2</span>
+      <span class="eic-ws-b-line-text">Look up the amount in the EIC Table (or use EIC formula) to find the credit based on your earned income and filing status (0 children). Enter the credit here.</span>
+      <span class="eic-ws-b-line-box">2</span>
+      <input type="text" class="eic-ws-b-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="eic-ws-b-form-line">
+      <span class="eic-ws-b-line-num">3</span>
+      <span class="eic-ws-b-line-text">Enter your adjusted gross income (AGI) from Form 1040 or 1040-SR, line 11</span>
+      <span class="eic-ws-b-line-box">3</span>
+      <input type="text" class="eic-ws-b-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+
+    <div class="eic-ws-b-form-line eic-ws-b-question-line">
+      <span class="eic-ws-b-line-num">4</span>
+      <span class="eic-ws-b-line-text">Are the amounts on lines 1 and 3 the same?</span>
+      <span class="eic-ws-b-line-box">4</span>
+      <div class="eic-ws-b-checkbox-container">
+        <label><input type="checkbox" class="eic-ws-b-checkbox" name="{{ fields|get_item:'4'|field_id }}" {% if fields|get_item:'4'|field_value %}checked{% endif %}> <span class="eic-ws-b-checkbox-label">Yes</span></label>
+        <span class="eic-ws-b-checkbox-label" style="font-weight: normal; font-size: 9pt;">If Yes, skip line 5 and enter the amount from line 2 on line 6</span>
+      </div>
+    </div>
+
+    <div class="eic-ws-b-form-line eic-ws-b-calculation-line">
+      <span class="eic-ws-b-line-num">5</span>
+      <span class="eic-ws-b-line-text">If No on line 4: Look up the amount in the EIC Table (or use EIC formula) to find the credit based on your AGI and filing status (0 children). Enter the credit here.</span>
+      <span class="eic-ws-b-line-box">5</span>
+      <input type="text" class="eic-ws-b-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+  </div>
+
+  <div class="eic-ws-b-section-header">
+    Step 2 - Your Earned Income Credit
+  </div>
+
+  <div class="eic-ws-b-section">
+    <div class="eic-ws-b-form-line eic-ws-b-result-line">
+      <span class="eic-ws-b-line-num">6</span>
+      <span class="eic-ws-b-line-text">
+        <strong>Earned income credit.</strong>
+        If you checked "Yes" on line 4, enter the amount from line 2.
+        If you did not check "Yes", enter the smaller of line 2 or line 5.
+        <br><strong>This is your earned income credit. Enter this amount on Form 1040 or 1040-SR, line 27.</strong>
+      </span>
+      <span class="eic-ws-b-line-box">6</span>
+      <input type="text" class="eic-ws-b-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+  </div>
+
+  <div class="eic-ws-b-important">
+    <strong>Important:</strong> The amount on line 6 is your Earned Income Credit.
+    Enter this amount on Form 1040, line 27.
+    If you have a qualifying child, use EIC Worksheet A instead.
+  </div>
+
+  <div class="eic-ws-b-note">
+    <strong>EIC Limits for {{ year }}:</strong>
+    <ul style="margin: 5px 0 0 20px; padding: 0;">
+      <li>Maximum AGI (Single, HOH, or Qualifying Surviving Spouse): $17,640</li>
+      <li>Maximum AGI (Married Filing Jointly): $24,210</li>
+      <li>Maximum earned income: Same as AGI limits above</li>
+      <li>Maximum credit (0 children): $632</li>
+    </ul>
+  </div>
+
+  <div class="eic-ws-b-footer">
+    <div>
+      <strong>For instructions, see the EIC section of your tax return instructions.</strong>
+    </div>
+    <div>
+      Keep for your records
+    </div>
+    <div>
+      <strong>EIC Worksheet B ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

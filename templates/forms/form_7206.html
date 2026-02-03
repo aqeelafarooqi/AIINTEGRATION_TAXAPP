@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 7206 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_7206.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-7206-container">
+  <div class="form-7206-top-header">
+    <div class="form-7206-top-left">
+      <div class="form-7206-form-label">Form 7206</div>
+      <div class="form-7206-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-7206-top-center">
+      <div class="form-7206-main-title">Self-Employed Health Insurance Deduction</div>
+      <div class="form-7206-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form7206" target="_blank">www.irs.gov/Form7206</a> for instructions and the latest information.</strong></div>
+      <div class="form-7206-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+    </div>
+    <div class="form-7206-top-right">
+      <div class="form-7206-omb-line">OMB No. 1545-0074</div>
+      <div class="form-7206-year-large">{{ year }}</div>
+      <div class="form-7206-attachment">Attachment<br>Sequence No. <strong>40</strong></div>
+    </div>
+  </div>
+
+  <div class="form-7206-name-row">
+    <div class="form-7206-name-box" style="flex: 3;">
+      <div class="form-7206-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-7206-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-7206-ssn-box">
+      <div class="form-7206-name-label">Social security number</div>
+      <input type="text" class="form-7206-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-7206-note">
+    <strong>Note:</strong> If you are claiming the self-employed health insurance deduction, you may be able to use this form to figure your deduction. See the instructions for more information.
+  </div>
+
+  <div class="form-7206-part-header">
+    Part I - Self-Employed Health Insurance Deduction
+  </div>
+
+  <div class="form-7206-section">
+    <div class="form-7206-form-line">
+      <span class="form-7206-line-num">1</span>
+      <span class="form-7206-line-text">Enter the total amount of health insurance premiums you paid for coverage during the tax year for yourself, your spouse, and your dependents</span>
+      <span class="form-7206-line-box">1</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-7206-form-line form-7206-calc-line">
+      <span class="form-7206-line-num">2</span>
+      <span class="form-7206-line-text">Net profit and any other earned income from the business under which the insurance plan is established (from Schedule C, line 31; Schedule F, line 34; or Schedule K-1)</span>
+      <span class="form-7206-line-box">2</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="form-7206-form-line">
+      <span class="form-7206-line-num">3</span>
+      <span class="form-7206-line-text">Enter the total of all qualified long-term care insurance premiums included on line 1</span>
+      <span class="form-7206-line-box">3</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-7206-form-line form-7206-calc-line">
+      <span class="form-7206-line-num">4</span>
+      <span class="form-7206-line-text">Long-term care insurance premiums limitation based on your age (see instructions)</span>
+      <span class="form-7206-line-box">4</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" {% field_readonly fields|get_item:'4' %}>
+    </div>
+
+    <div class="form-7206-form-line form-7206-calc-line">
+      <span class="form-7206-line-num">5</span>
+      <span class="form-7206-line-text">Subtract line 4 from line 3. If zero or less, enter -0-</span>
+      <span class="form-7206-line-box">5</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+
+    <div class="form-7206-form-line form-7206-calc-line">
+      <span class="form-7206-line-num">6</span>
+      <span class="form-7206-line-text">Subtract line 5 from line 1. If zero or less, enter -0-</span>
+      <span class="form-7206-line-box">6</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="form-7206-form-line form-7206-result-line">
+      <span class="form-7206-line-num">7</span>
+      <span class="form-7206-line-text"><strong>Self-employed health insurance deduction.</strong> Enter the smaller of line 2 or line 6. Also include this amount on Schedule 1 (Form 1040), line 17</span>
+      <span class="form-7206-line-box">7</span>
+      <input type="text" class="form-7206-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+  </div>
+
+  <div class="form-7206-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 56476Q
+    </div>
+    <div>
+      <strong>Form 7206 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

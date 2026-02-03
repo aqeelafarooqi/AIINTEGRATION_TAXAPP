@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 2210 Penalty Worksheet - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_2210_penalty_worksheet.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-2210-pw-container">
+  <div class="form-2210-pw-top-header">
+    <div class="form-2210-pw-top-left">
+      <div class="form-2210-pw-form-label">Form 2210</div>
+      <div class="form-2210-pw-form-subtitle">Part III, Section B<br>Penalty Worksheet</div>
+    </div>
+    <div class="form-2210-pw-top-center">
+      <div class="form-2210-pw-main-title">Underpayment Penalty Calculation</div>
+      <div class="form-2210-pw-subtitle">Figure the Penalty - Short Method or Regular Method</div>
+    </div>
+    <div class="form-2210-pw-top-right">
+      <div class="form-2210-pw-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-2210-pw-name-row">
+    <div style="flex: 1;">
+      <div class="form-2210-pw-name-label">Taxpayer Name</div>
+      <div class="form-2210-pw-name-value">{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}</div>
+    </div>
+    <div style="width: 200px;">
+      <div class="form-2210-pw-name-label">SSN</div>
+      <div class="form-2210-pw-name-value">{{ taxpayer_obj.ssn|default:'' }}</div>
+    </div>
+  </div>
+
+  <div class="form-2210-pw-note">
+    <strong>Use this worksheet</strong> to figure the penalty for each installment period. Complete a separate section for each quarter where you made an underpayment.
+    The penalty rate is determined by the IRS for each quarter.
+  </div>
+
+  <div class="form-2210-pw-section-header">
+    Section B - Figure the Penalty (Regular Method)
+  </div>
+
+  <div class="form-2210-pw-section">
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">1</span>
+      <span class="form-2210-pw-line-text">Amount of underpayment from Form 2210, Part II, line 17 for this installment period</span>
+      <span class="form-2210-pw-line-box">1</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">2</span>
+      <span class="form-2210-pw-line-text">Date payment was made or April 15 of the following year (whichever is earlier)</span>
+      <span class="form-2210-pw-line-box">2</span>
+      <input type="text" class="form-2210-pw-line-input form-2210-pw-date-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" placeholder="MM/DD/YYYY">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">3</span>
+      <span class="form-2210-pw-line-text">Number of days from due date of installment to date on line 2</span>
+      <span class="form-2210-pw-line-box">3</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">4</span>
+      <span class="form-2210-pw-line-text">Penalty rate for period (see instructions - rates change quarterly)</span>
+      <span class="form-2210-pw-line-box">4</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" placeholder="0.08">
+    </div>
+
+    <div class="form-2210-pw-form-line form-2210-pw-calculation-line">
+      <span class="form-2210-pw-line-num">5</span>
+      <span class="form-2210-pw-line-text">Penalty for first period. Multiply line 1 × line 3 ÷ 365 × line 4</span>
+      <span class="form-2210-pw-line-box">5</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+  </div>
+
+  <div class="form-2210-pw-subheader">
+    If underpayment continues to next rate period:
+  </div>
+
+  <div class="form-2210-pw-section">
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">6</span>
+      <span class="form-2210-pw-line-text">Date of next payment or April 15</span>
+      <span class="form-2210-pw-line-box">6</span>
+      <input type="text" class="form-2210-pw-line-input form-2210-pw-date-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" placeholder="MM/DD/YYYY">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">7</span>
+      <span class="form-2210-pw-line-text">Number of days from date on line 2 to date on line 6</span>
+      <span class="form-2210-pw-line-box">7</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">8</span>
+      <span class="form-2210-pw-line-text">Amount on line 1 minus any portion paid before line 6 date</span>
+      <span class="form-2210-pw-line-box">8</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2210-pw-form-line">
+      <span class="form-2210-pw-line-num">9</span>
+      <span class="form-2210-pw-line-text">Penalty rate for this period (may differ from line 4 if rate changed)</span>
+      <span class="form-2210-pw-line-box">9</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" placeholder="0.08">
+    </div>
+
+    <div class="form-2210-pw-form-line form-2210-pw-calculation-line">
+      <span class="form-2210-pw-line-num">10</span>
+      <span class="form-2210-pw-line-text">Penalty for second period. Multiply line 8 × line 7 ÷ 365 × line 9</span>
+      <span class="form-2210-pw-line-box">10</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-2210-pw-form-line form-2210-pw-calculation-line">
+      <span class="form-2210-pw-line-num">11</span>
+      <span class="form-2210-pw-line-text"><strong>Total penalty for this installment.</strong> Add lines 5 and 10 (and any other periods)</span>
+      <span class="form-2210-pw-line-box">11</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+  </div>
+
+  <div class="form-2210-pw-section-header">
+    Quarterly Summary
+  </div>
+
+  <div class="form-2210-pw-quarters-grid">
+    <div class="form-2210-pw-quarter-box">
+      <div class="form-2210-pw-quarter-title">Q1</div>
+      <div class="form-2210-pw-quarter-date">Due: April 15</div>
+      <input type="text" class="form-2210-pw-quarter-input irs-line-input" name="{{ fields|get_item:'Q1'|field_id }}" value="{{ fields|get_item:'Q1'|field_value|default:'' }}">
+    </div>
+    <div class="form-2210-pw-quarter-box">
+      <div class="form-2210-pw-quarter-title">Q2</div>
+      <div class="form-2210-pw-quarter-date">Due: June 15</div>
+      <input type="text" class="form-2210-pw-quarter-input irs-line-input" name="{{ fields|get_item:'Q2'|field_id }}" value="{{ fields|get_item:'Q2'|field_value|default:'' }}">
+    </div>
+    <div class="form-2210-pw-quarter-box">
+      <div class="form-2210-pw-quarter-title">Q3</div>
+      <div class="form-2210-pw-quarter-date">Due: September 15</div>
+      <input type="text" class="form-2210-pw-quarter-input irs-line-input" name="{{ fields|get_item:'Q3'|field_id }}" value="{{ fields|get_item:'Q3'|field_value|default:'' }}">
+    </div>
+    <div class="form-2210-pw-quarter-box">
+      <div class="form-2210-pw-quarter-title">Q4</div>
+      <div class="form-2210-pw-quarter-date">Due: January 15</div>
+      <input type="text" class="form-2210-pw-quarter-input irs-line-input" name="{{ fields|get_item:'Q4'|field_id }}" value="{{ fields|get_item:'Q4'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-2210-pw-section">
+    <div class="form-2210-pw-form-line form-2210-pw-result-line">
+      <span class="form-2210-pw-line-num">Total</span>
+      <span class="form-2210-pw-line-text"><strong>Total penalty.</strong> Add Q1 through Q4. Enter on Form 2210, line 19 and Form 1040, line 38</span>
+      <span class="form-2210-pw-line-box">Total</span>
+      <input type="text" class="form-2210-pw-line-input irs-line-input" name="{{ fields|get_item:'total'|field_id }}" value="{{ fields|get_item:'total'|field_value|default:'' }}" {% field_readonly fields|get_item:'total' %}>
+    </div>
+  </div>
+
+  <div class="form-2210-pw-note">
+    <strong>Note:</strong> Penalty rates are set by the IRS quarterly. For {{ year }}, check the IRS website or instructions for current rates.
+    The formula is: Underpayment × Days ÷ 365 × Rate = Penalty for period.
+  </div>
+
+  <div class="form-2210-pw-footer">
+    <div>
+      <strong>For instructions, see Form 2210 instructions.</strong>
+    </div>
+    <div>
+      Keep for your records
+    </div>
+    <div>
+      <strong>Form 2210 Penalty Worksheet ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

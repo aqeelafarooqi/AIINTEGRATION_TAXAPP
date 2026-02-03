@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 7217 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_7217.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-7217-container">
+  <div class="form-7217-top-header">
+    <div class="form-7217-top-left">
+      <div class="form-7217-form-label">Form 7217</div>
+      <div class="form-7217-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-7217-top-center">
+      <div class="form-7217-main-title">Partner's Report of Property Distributed by a Partnership</div>
+      <div class="form-7217-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form7217" target="_blank">www.irs.gov/Form7217</a> for instructions and the latest information.</strong></div>
+      <div class="form-7217-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+    </div>
+    <div class="form-7217-top-right">
+      <div class="form-7217-omb-line">OMB No. 1545-0123</div>
+      <div class="form-7217-year-large">{{ year }}</div>
+      <div class="form-7217-attachment">Attachment<br>Sequence No. <strong>67</strong></div>
+    </div>
+  </div>
+
+  <div class="form-7217-info-section">
+    <div class="form-7217-info-box">
+      <div class="form-7217-info-label">Partner's name</div>
+      <input type="text" class="form-7217-info-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-7217-info-box">
+      <div class="form-7217-info-label">Partner's TIN (SSN or EIN)</div>
+      <input type="text" class="form-7217-info-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-7217-info-section">
+    <div class="form-7217-info-box">
+      <div class="form-7217-info-label">Distributing partnership's name</div>
+      <input type="text" class="form-7217-info-input" name="{{ fields|get_item:'partnership_name'|field_id }}" value="{{ fields|get_item:'partnership_name'|field_value|default:'' }}">
+    </div>
+    <div class="form-7217-info-box">
+      <div class="form-7217-info-label">Distributing partnership's EIN</div>
+      <input type="text" class="form-7217-info-input" name="{{ fields|get_item:'partnership_ein'|field_id }}" value="{{ fields|get_item:'partnership_ein'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-7217-info-section" style="grid-template-columns: 1fr;">
+    <div class="form-7217-info-box">
+      <div class="form-7217-info-label">Date property was distributed to partner (mm/dd/yyyy)</div>
+      <input type="text" class="form-7217-info-input" name="{{ fields|get_item:'distribution_date'|field_id }}" value="{{ fields|get_item:'distribution_date'|field_value|default:'' }}" style="width: 200px;">
+    </div>
+  </div>
+
+  <div class="form-7217-part-header">
+    Part I - General Information
+  </div>
+
+  <div class="form-7217-section">
+    <div class="form-7217-form-line form-7217-checkbox-line">
+      <span class="form-7217-line-num">1</span>
+      <span class="form-7217-line-text">Was this distribution in complete liquidation of the partner's interest in the partnership?</span>
+      <div class="form-7217-yes-no">
+        <label><input type="checkbox" class="form-7217-checkbox" name="{{ fields|get_item:'Part I, 1'|field_id }}" {% if fields|get_item:'Part I, 1'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-7217-form-line form-7217-checkbox-line">
+      <span class="form-7217-line-num">2</span>
+      <span class="form-7217-line-text">Was any part of the distribution treated as a sale or exchange under section 751(b)?</span>
+      <div class="form-7217-yes-no">
+        <label><input type="checkbox" class="form-7217-checkbox" name="{{ fields|get_item:'Part I, 2'|field_id }}" {% if fields|get_item:'Part I, 2'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-7217-form-line">
+      <span class="form-7217-line-num">4</span>
+      <span class="form-7217-line-text">Adjusted basis of the partner's interest in the partnership immediately before the distribution</span>
+      <span class="form-7217-line-box">4</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 4'|field_id }}" value="{{ fields|get_item:'Part I, 4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-7217-form-line">
+      <span class="form-7217-line-num">5a</span>
+      <span class="form-7217-line-text">Cash received in distribution</span>
+      <span class="form-7217-line-box">5a</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 5a'|field_id }}" value="{{ fields|get_item:'Part I, 5a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-7217-form-line">
+      <span class="form-7217-line-num">5b</span>
+      <span class="form-7217-line-text">FMV of marketable securities received in distribution</span>
+      <span class="form-7217-line-box">5b</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 5b'|field_id }}" value="{{ fields|get_item:'Part I, 5b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-7217-form-line form-7217-calc-line">
+      <span class="form-7217-line-num">5c</span>
+      <span class="form-7217-line-text">Cash and marketable securities (as defined in Section 731(c)) received in the distribution. Add lines 5a and 5b</span>
+      <span class="form-7217-line-box">5c</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 5c'|field_id }}" value="{{ fields|get_item:'Part I, 5c'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part I, 5c' %}>
+    </div>
+
+    <div class="form-7217-form-line form-7217-calc-line">
+      <span class="form-7217-line-num">6</span>
+      <span class="form-7217-line-text">Enter the smaller of line 4 or line 5c</span>
+      <span class="form-7217-line-box">6</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 6'|field_id }}" value="{{ fields|get_item:'Part I, 6'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part I, 6' %}>
+    </div>
+
+    <div class="form-7217-form-line form-7217-calc-line">
+      <span class="form-7217-line-num">7</span>
+      <span class="form-7217-line-text">Gain recognized. Subtract line 6 from line 5c. If zero or less, enter -0-</span>
+      <span class="form-7217-line-box">7</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 7'|field_id }}" value="{{ fields|get_item:'Part I, 7'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part I, 7' %}>
+    </div>
+
+    <div class="form-7217-form-line form-7217-checkbox-line">
+      <span class="form-7217-line-num">8</span>
+      <span class="form-7217-line-text">If you answered "Yes" to line 7, is U.S. tax required to be paid on the gain?</span>
+      <div class="form-7217-yes-no">
+        <label><input type="checkbox" class="form-7217-checkbox" name="{{ fields|get_item:'Part I, 8'|field_id }}" {% if fields|get_item:'Part I, 8'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-7217-form-line form-7217-calc-line">
+      <span class="form-7217-line-num">9</span>
+      <span class="form-7217-line-text">Partner's basis in partnership interest reduced by cash received in the distribution. Subtract line 5c from line 4. If zero or less, enter -0-</span>
+      <span class="form-7217-line-box">9</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 9'|field_id }}" value="{{ fields|get_item:'Part I, 9'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part I, 9' %}>
+    </div>
+
+    <div class="form-7217-form-line form-7217-calc-line">
+      <span class="form-7217-line-num">10</span>
+      <span class="form-7217-line-text">Aggregate basis to be allocated to the distributed property. Enter the smaller of line 9 or Part II, line B, column (b)</span>
+      <span class="form-7217-line-box">10</span>
+      <input type="text" class="form-7217-line-input irs-line-input" name="{{ fields|get_item:'Part I, 10'|field_id }}" value="{{ fields|get_item:'Part I, 10'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part I, 10' %}>
+    </div>
+  </div>
+
+  <div class="form-7217-part-header">
+    Part II - Allocation of Basis of Distributed Property
+  </div>
+
+  <div class="form-7217-section">
+    <table class="form-7217-table">
+      <thead>
+        <tr>
+          <th rowspan="2" class="col-a">(a) Description of distributed property</th>
+          <th rowspan="2" class="col-b">(b) Partnership's basis in property before distribution</th>
+          <th colspan="4" class="col-c">(c) Basis adjustments<br>(check all that apply)</th>
+          <th rowspan="2" class="col-d">(d) FMV of distributed property</th>
+          <th rowspan="2" class="col-e">(e) Partner's basis after section 732</th>
+        </tr>
+        <tr>
+          <th style="width: 35px;">(i) 732(d)</th>
+          <th style="width: 35px;">(ii) 732(f)</th>
+          <th style="width: 35px;">(iii) 734(b)</th>
+          <th style="width: 35px;">(iv) 743(b)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="text" class="text-left" name="{{ fields|get_item:'Part II, column (a)'|field_id }}" value="{{ fields|get_item:'Part II, column (a)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, column (b)'|field_id }}" value="{{ fields|get_item:'Part II, column (b)'|field_value|default:'' }}"></td>
+          <td style="text-align: center;"><input type="checkbox" name="{{ fields|get_item:'Part II, column (c)(i)'|field_id }}" {% if fields|get_item:'Part II, column (c)(i)'|field_value %}checked{% endif %}></td>
+          <td style="text-align: center;"><input type="checkbox" name="{{ fields|get_item:'Part II, column (c)(ii)'|field_id }}" {% if fields|get_item:'Part II, column (c)(ii)'|field_value %}checked{% endif %}></td>
+          <td style="text-align: center;"><input type="checkbox" name="{{ fields|get_item:'Part II, column (c)(iii)'|field_id }}" {% if fields|get_item:'Part II, column (c)(iii)'|field_value %}checked{% endif %}></td>
+          <td style="text-align: center;"><input type="checkbox" name="{{ fields|get_item:'Part II, column (c)(iv)'|field_id }}" {% if fields|get_item:'Part II, column (c)(iv)'|field_value %}checked{% endif %}></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, column (d)'|field_id }}" value="{{ fields|get_item:'Part II, column (d)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, column (e)'|field_id }}" value="{{ fields|get_item:'Part II, column (e)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>B. Totals</strong></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, B, Total column (b)'|field_id }}" value="{{ fields|get_item:'Part II, B, Total column (b)'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part II, B, Total column (b)' %}></td>
+          <td colspan="4"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, B, Total column (d)'|field_id }}" value="{{ fields|get_item:'Part II, B, Total column (d)'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part II, B, Total column (d)' %}></td>
+          <td><input type="text" name="{{ fields|get_item:'Part II, B, Total column (e)'|field_id }}" value="{{ fields|get_item:'Part II, B, Total column (e)'|field_value|default:'' }}" {% field_readonly fields|get_item:'Part II, B, Total column (e)' %}></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-7217-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see the separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 56631X
+    </div>
+    <div>
+      <strong>Form 7217 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

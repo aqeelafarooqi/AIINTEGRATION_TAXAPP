@@ -1,0 +1,51 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/irs_form_header.css' %}">
+
+<div class="irs-header-container">
+  <!-- Top header with three sections -->
+  <div class="irs-header-top">
+    <div class="irs-header-left">
+      <div class="irs-form-name">{{ name }}</div>
+      <div class="irs-dept-info">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="irs-header-center">
+      <div class="irs-form-title">{{ description }}</div>
+      <div class="irs-form-help">{{ help_text|safe }}</div>
+    </div>
+    <div class="irs-header-right">
+      <div class="irs-omb-number">OMB No. 1545-0008</div>
+      <div class="irs-tax-year">{{ year }}</div>
+      <div class="irs-attachment">Attachment<br>Sequence No. 07</div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="irs-header-name-row">
+    <div class="irs-header-name-section">
+      <div class="irs-label">Name(s) shown on return</div>
+      {% if taxpayer %}
+        <div class="irs-value">
+          {{ taxpayer.first_name|default:'' }} {{ taxpayer.last_name|default:'' }}
+          {% if taxpayer.taxpayer_spouse %}
+            and {{ taxpayer.taxpayer_spouse.first_name|default:'' }} {{ taxpayer.taxpayer_spouse.last_name|default:'' }}
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="irs-value">
+          {{ user.get_full_name|default:'' }}
+          {% if user.user_spouse %}
+            and {{ user.user_spouse.get_full_name|default:'' }}
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="irs-header-ssn-section">
+      <div class="irs-label">Your social security number</div>
+      {% if taxpayer %}
+        <div class="irs-value">{{ taxpayer.ssn|default:'' }}</div>
+      {% else %}
+        <div class="irs-value"></div>
+      {% endif %}
+    </div>
+  </div>
+</div>

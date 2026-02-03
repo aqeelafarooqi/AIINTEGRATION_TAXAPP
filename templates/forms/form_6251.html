@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 6251 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_6251.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-6251-container">
+  <div class="form-6251-top-header">
+    <div class="form-6251-top-left">
+      <div class="form-6251-form-label">Form 6251</div>
+      <div class="form-6251-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-6251-top-center">
+      <div class="form-6251-main-title">Alternative Minimum Tax—Individuals</div>
+      <div class="form-6251-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form6251" target="_blank">www.irs.gov/Form6251</a> for instructions and the latest information.</strong></div>
+      <div class="form-6251-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+    </div>
+    <div class="form-6251-top-right">
+      <div class="form-6251-omb-line">OMB No. 1545-0074</div>
+      <div class="form-6251-year-large">{{ year }}</div>
+      <div class="form-6251-attachment">Attachment<br>Sequence No. <strong>32</strong></div>
+    </div>
+  </div>
+
+  <div class="form-6251-name-row">
+    <div class="form-6251-name-box" style="flex: 3;">
+      <div class="form-6251-name-label">Name(s) shown on Form 1040, 1040-SR, or 1040-NR</div>
+      <input type="text" class="form-6251-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-6251-ssn-box">
+      <div class="form-6251-name-label">Your social security number</div>
+      <input type="text" class="form-6251-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-6251-part-header">
+    Part I - Alternative Minimum Taxable Income
+  </div>
+
+  <div class="form-6251-section">
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">1a</span>
+      <span class="form-6251-line-text">Total deductions less enhanced senior deduction amount</span>
+      <span class="form-6251-line-box">1a</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">1b</span>
+      <span class="form-6251-line-text">AGI less total deductions less enhanced senior deduction amount</span>
+      <span class="form-6251-line-box">1b</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2a</span>
+      <span class="form-6251-line-text">Taxes from Schedule A</span>
+      <span class="form-6251-line-box">2a</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2b</span>
+      <span class="form-6251-line-text">Tax refund from Form 1040 or 1040-SR, line 1z</span>
+      <span class="form-6251-line-box">2b</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2b'|field_id }}" value="{{ fields|get_item:'2b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2c</span>
+      <span class="form-6251-line-text">Investment interest expense</span>
+      <span class="form-6251-line-box">2c</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2c'|field_id }}" value="{{ fields|get_item:'2c'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2d</span>
+      <span class="form-6251-line-text">Depletion</span>
+      <span class="form-6251-line-box">2d</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2d'|field_id }}" value="{{ fields|get_item:'2d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2e</span>
+      <span class="form-6251-line-text">Net operating loss deduction from Form 1040 or 1040-SR, line 8a</span>
+      <span class="form-6251-line-box">2e</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2e'|field_id }}" value="{{ fields|get_item:'2e'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2f</span>
+      <span class="form-6251-line-text">Alternative tax net operating loss deduction</span>
+      <span class="form-6251-line-box">2f</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2f'|field_id }}" value="{{ fields|get_item:'2f'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2g</span>
+      <span class="form-6251-line-text">Interest from specified private activity bonds exempt from regular tax</span>
+      <span class="form-6251-line-box">2g</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2g'|field_id }}" value="{{ fields|get_item:'2g'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2h</span>
+      <span class="form-6251-line-text">Qualified small business stock (7% of gain excluded under section 1202)</span>
+      <span class="form-6251-line-box">2h</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2h'|field_id }}" value="{{ fields|get_item:'2h'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2i</span>
+      <span class="form-6251-line-text">Exercise of incentive stock options</span>
+      <span class="form-6251-line-box">2i</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2i'|field_id }}" value="{{ fields|get_item:'2i'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2j</span>
+      <span class="form-6251-line-text">Estates and trusts (amount from Schedule K-1 (Form 1041), box 12, code A)</span>
+      <span class="form-6251-line-box">2j</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2j'|field_id }}" value="{{ fields|get_item:'2j'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2k</span>
+      <span class="form-6251-line-text">Disposition of property (gain/loss difference)</span>
+      <span class="form-6251-line-box">2k</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2k'|field_id }}" value="{{ fields|get_item:'2k'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2l</span>
+      <span class="form-6251-line-text">Depreciation on assets placed in service after 1986</span>
+      <span class="form-6251-line-box">2l</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2l'|field_id }}" value="{{ fields|get_item:'2l'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2m</span>
+      <span class="form-6251-line-text">Passive activities</span>
+      <span class="form-6251-line-box">2m</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2m'|field_id }}" value="{{ fields|get_item:'2m'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2n</span>
+      <span class="form-6251-line-text">Loss limitations</span>
+      <span class="form-6251-line-box">2n</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2n'|field_id }}" value="{{ fields|get_item:'2n'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2o</span>
+      <span class="form-6251-line-text">Circulation costs</span>
+      <span class="form-6251-line-box">2o</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2o'|field_id }}" value="{{ fields|get_item:'2o'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2p</span>
+      <span class="form-6251-line-text">Long-term contracts</span>
+      <span class="form-6251-line-box">2p</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2p'|field_id }}" value="{{ fields|get_item:'2p'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2q</span>
+      <span class="form-6251-line-text">Mining costs</span>
+      <span class="form-6251-line-box">2q</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2q'|field_id }}" value="{{ fields|get_item:'2q'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2r</span>
+      <span class="form-6251-line-text">Research and experimental costs</span>
+      <span class="form-6251-line-box">2r</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2r'|field_id }}" value="{{ fields|get_item:'2r'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2s</span>
+      <span class="form-6251-line-text">Income from certain installment sales before January 1, 1987</span>
+      <span class="form-6251-line-box">2s</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2s'|field_id }}" value="{{ fields|get_item:'2s'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">2t</span>
+      <span class="form-6251-line-text">Intangible drilling costs preference</span>
+      <span class="form-6251-line-box">2t</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'2t'|field_id }}" value="{{ fields|get_item:'2t'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">3</span>
+      <span class="form-6251-line-text">Related adjustments. Combine lines 2a through 2t</span>
+      <span class="form-6251-line-box">3</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">4</span>
+      <span class="form-6251-line-text"><strong>Alternative minimum taxable income.</strong> Combine lines 1b and 3</span>
+      <span class="form-6251-line-box">4</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" {% field_readonly fields|get_item:'4' %}>
+    </div>
+  </div>
+
+  <div class="form-6251-part-header">
+    Part II - Alternative Minimum Tax (AMT)
+  </div>
+
+  <div class="form-6251-section">
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">5</span>
+      <span class="form-6251-line-text">Exemption amount</span>
+      <span class="form-6251-line-box">5</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" {% field_readonly fields|get_item:'5' %}>
+    </div>
+
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">6</span>
+      <span class="form-6251-line-text">Subtract line 5 from line 4. If zero or less, enter -0-</span>
+      <span class="form-6251-line-box">6</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">7</span>
+      <span class="form-6251-line-text">If you reported capital gain distributions directly on Form 1040 or 1040-SR, line 7; or if you have no qualified dividends on Form 1040, 1040-SR, or 1040-NR, line 3a, then compute the tax on line 6 using the rates in Schedule D Tax Worksheet. Otherwise, complete Part III on page 2</span>
+      <span class="form-6251-line-box">7</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line">
+      <span class="form-6251-line-num">8</span>
+      <span class="form-6251-line-text">Alternative minimum tax foreign tax credit</span>
+      <span class="form-6251-line-box">8</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">9</span>
+      <span class="form-6251-line-text"><strong>Tentative minimum tax.</strong> Subtract line 8 from line 7</span>
+      <span class="form-6251-line-box">9</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+
+    <div class="form-6251-form-line form-6251-calc-line">
+      <span class="form-6251-line-num">10</span>
+      <span class="form-6251-line-text">Add Form 1040 or 1040-SR, line 16 (minus any tax from Form 4972) and Schedule 2 (Form 1040), line 2</span>
+      <span class="form-6251-line-box">10</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-6251-form-line form-6251-result-line">
+      <span class="form-6251-line-num">11</span>
+      <span class="form-6251-line-text"><strong>AMT.</strong> Subtract line 10 from line 9. If zero or less, enter -0-. Enter here and on Schedule 2 (Form 1040), line 1</span>
+      <span class="form-6251-line-box">11</span>
+      <input type="text" class="form-6251-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+  </div>
+
+  <div class="form-6251-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 13600G
+    </div>
+    <div>
+      <strong>Form 6251 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule 2 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_2.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="schedule-2-container">
+  <!-- Header -->
+  <div class="schedule-2-top-header">
+    <div class="schedule-2-top-left">
+      <div class="schedule-2-form-label">SCHEDULE 2</div>
+      <div class="schedule-2-form-number">(Form 1040)</div>
+      <div class="schedule-2-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-2-top-center">
+      <div class="schedule-2-main-title">Additional Taxes</div>
+      <div class="schedule-2-attach-note"><strong>Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="schedule-2-web-link"><strong>Go to <a href="https://www.irs.gov/Form1040" target="_blank">www.irs.gov/Form1040</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="schedule-2-top-right">
+      <div class="schedule-2-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-2-year-large">{{ year }}</div>
+      <div class="schedule-2-attachment">Attachment<br>Sequence No. <strong>02</strong></div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="schedule-2-name-row">
+    <div class="schedule-2-name-label">
+      <strong>Name(s) shown on Form 1040, 1040-SR, or 1040-NR</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+          and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="schedule-2-ssn-box">
+      <strong>Your social security number</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Main form table -->
+  <table class="schedule-2-main-table">
+    <tr>
+      <td class="schedule-2-left-column">
+        <div class="schedule-2-section-header">Part I<br>Tax</div>
+      </td>
+      <td class="schedule-2-middle-column">
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">1</span>
+          <span class="schedule-2-line-text">Alternative minimum tax. Attach Form 6251 <span class="schedule-2-dots">. . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">1</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}"{% field_readonly fields|get_item:'1' %} {% field_disabled fields|get_item:'1' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">2</span>
+          <span class="schedule-2-line-text">Excess advance premium tax credit repayment. Attach Form 8962 <span class="schedule-2-dots">. . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">2</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}"{% field_readonly fields|get_item:'2' %} {% field_disabled fields|get_item:'2' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-total-line">
+          <span class="schedule-2-line-num">3</span>
+          <span class="schedule-2-line-text"><strong>Add lines 1 and 2. Enter here and on Form 1040, 1040-SR, or 1040-NR, line 17</strong> <span class="schedule-2-dots">. . . . . .</span></span>
+          <span class="schedule-2-line-box">3</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}"{% field_readonly fields|get_item:'3' %} {% field_disabled fields|get_item:'3' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-2-left-column">
+        <div class="schedule-2-section-header">Part II<br>Other<br>Taxes</div>
+      </td>
+      <td class="schedule-2-middle-column">
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">4</span>
+          <span class="schedule-2-line-text">Self-employment tax. Attach Schedule SE <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">4</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}"{% field_readonly fields|get_item:'4' %} {% field_disabled fields|get_item:'4' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">5</span>
+          <span class="schedule-2-line-text">Social security and Medicare tax on unreported tip income. Attach Form 4137 <span class="schedule-2-dots">. . . . . .</span></span>
+          <span class="schedule-2-line-box">5</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}"{% field_readonly fields|get_item:'5' %} {% field_disabled fields|get_item:'5' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">6</span>
+          <span class="schedule-2-line-text">Uncollected social security and Medicare tax on wages. Attach Form 8919 <span class="schedule-2-dots">. . . . . . .</span></span>
+          <span class="schedule-2-line-box">6</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}"{% field_readonly fields|get_item:'6' %} {% field_disabled fields|get_item:'6' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">7</span>
+          <span class="schedule-2-line-text">Total additional social security and Medicare tax. Add lines 5 and 6 <span class="schedule-2-dots">. . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">7</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}"{% field_readonly fields|get_item:'7' %} {% field_disabled fields|get_item:'7' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">8</span>
+          <span class="schedule-2-line-text">Additional tax on IRAs or other tax-favored accounts. Attach Form 5329 if required <span class="schedule-2-dots">. . . . .</span></span>
+          <span class="schedule-2-line-box">8</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}"{% field_readonly fields|get_item:'8' %} {% field_disabled fields|get_item:'8' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">9</span>
+          <span class="schedule-2-line-text">Household employment taxes. Attach Schedule H <span class="schedule-2-dots">. . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">9</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}"{% field_readonly fields|get_item:'9' %} {% field_disabled fields|get_item:'9' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">10</span>
+          <span class="schedule-2-line-text">Repayment of first-time homebuyer credit. Attach Form 5405 if required <span class="schedule-2-dots">. . . . . . . .</span></span>
+          <span class="schedule-2-line-box">10</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}"{% field_readonly fields|get_item:'10' %} {% field_disabled fields|get_item:'10' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">11</span>
+          <span class="schedule-2-line-text">Additional Medicare Tax. Attach Form 8959 <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">11</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}"{% field_readonly fields|get_item:'11' %} {% field_disabled fields|get_item:'11' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">12</span>
+          <span class="schedule-2-line-text">Net investment income tax. Attach Form 8960 <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">12</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}"{% field_readonly fields|get_item:'12' %} {% field_disabled fields|get_item:'12' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">13</span>
+          <span class="schedule-2-line-text">Uncollected social security and Medicare or RRTA tax on tips or group-term life insurance from Form W-2, box 12 <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">13</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}"{% field_readonly fields|get_item:'13' %} {% field_disabled fields|get_item:'13' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">14</span>
+          <span class="schedule-2-line-text">Interest on tax due on installment income from the sale of certain residential lots and timeshares</span>
+          <span class="schedule-2-line-box">14</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}"{% field_readonly fields|get_item:'14' %} {% field_disabled fields|get_item:'14' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">15</span>
+          <span class="schedule-2-line-text">Interest on the deferred tax on gain from certain installment sales with a sales price over $150,000</span>
+          <span class="schedule-2-line-box">15</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}"{% field_readonly fields|get_item:'15' %} {% field_disabled fields|get_item:'15' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">16</span>
+          <span class="schedule-2-line-text">Recapture of low-income housing credit. Attach Form 8611 <span class="schedule-2-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">16</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}"{% field_readonly fields|get_item:'16' %} {% field_disabled fields|get_item:'16' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">17</span>
+          <span class="schedule-2-line-text">Other additional taxes:</span>
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">a</span>
+          <span class="schedule-2-line-text">Recapture of other credits. List type, form number, and amount: <span class="schedule-2-underline">__________</span></span>
+          <span class="schedule-2-line-box">17a</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17a'|field_id }}" value="{{ fields|get_item:'17a'|field_value|default:'' }}"{% field_readonly fields|get_item:'17a' %} {% field_disabled fields|get_item:'17a' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">b</span>
+          <span class="schedule-2-line-text">Recapture of federal mortgage subsidy. Attach Form 8828 if required <span class="schedule-2-dots">. . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17b</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17b'|field_id }}" value="{{ fields|get_item:'17b'|field_value|default:'' }}"{% field_readonly fields|get_item:'17b' %} {% field_disabled fields|get_item:'17b' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">c</span>
+          <span class="schedule-2-line-text">Additional tax on HSA distributions. Attach Form 8889 <span class="schedule-2-dots">. . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17c</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17c'|field_id }}" value="{{ fields|get_item:'17c'|field_value|default:'' }}"{% field_readonly fields|get_item:'17c' %} {% field_disabled fields|get_item:'17c' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">d</span>
+          <span class="schedule-2-line-text">Additional tax on an MSA distribution. Attach Form 8853 <span class="schedule-2-dots">. . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17d</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17d'|field_id }}" value="{{ fields|get_item:'17d'|field_value|default:'' }}"{% field_readonly fields|get_item:'17d' %} {% field_disabled fields|get_item:'17d' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">e</span>
+          <span class="schedule-2-line-text">Additional tax on Medicare Advantage MSA distributions. Attach Form 8853 <span class="schedule-2-dots">. . . . . . .</span></span>
+          <span class="schedule-2-line-box">17e</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17e'|field_id }}" value="{{ fields|get_item:'17e'|field_value|default:'' }}"{% field_readonly fields|get_item:'17e' %} {% field_disabled fields|get_item:'17e' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">f</span>
+          <span class="schedule-2-line-text">Recapture of a charitable contribution deduction related to a fractional interest in tangible personal property</span>
+          <span class="schedule-2-line-box">17f</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17f'|field_id }}" value="{{ fields|get_item:'17f'|field_value|default:'' }}"{% field_readonly fields|get_item:'17f' %} {% field_disabled fields|get_item:'17f' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">g</span>
+          <span class="schedule-2-line-text">Income you received from a nonqualified deferred compensation plan that fails to meet the requirements of section 409A <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17g</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17g'|field_id }}" value="{{ fields|get_item:'17g'|field_value|default:'' }}"{% field_readonly fields|get_item:'17g' %} {% field_disabled fields|get_item:'17g' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">h</span>
+          <span class="schedule-2-line-text">Compensation you received from a nonqualified deferred compensation plan described in section 457A</span>
+          <span class="schedule-2-line-box">17h</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17h'|field_id }}" value="{{ fields|get_item:'17h'|field_value|default:'' }}"{% field_readonly fields|get_item:'17h' %} {% field_disabled fields|get_item:'17h' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">i</span>
+          <span class="schedule-2-line-text">Section 72(m)(5) excess benefits tax <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17i</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17i'|field_id }}" value="{{ fields|get_item:'17i'|field_value|default:'' }}"{% field_readonly fields|get_item:'17i' %} {% field_disabled fields|get_item:'17i' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">j</span>
+          <span class="schedule-2-line-text">Golden parachute payments <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17j</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17j'|field_id }}" value="{{ fields|get_item:'17j'|field_value|default:'' }}"{% field_readonly fields|get_item:'17j' %} {% field_disabled fields|get_item:'17j' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">k</span>
+          <span class="schedule-2-line-text">Tax on accumulation distribution of trusts <span class="schedule-2-dots">. . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17k</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17k'|field_id }}" value="{{ fields|get_item:'17k'|field_value|default:'' }}"{% field_readonly fields|get_item:'17k' %} {% field_disabled fields|get_item:'17k' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">l</span>
+          <span class="schedule-2-line-text">Excise tax on insider stock compensation from an expatriated corporation <span class="schedule-2-dots">. . . . . . .</span></span>
+          <span class="schedule-2-line-box">17l</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17l'|field_id }}" value="{{ fields|get_item:'17l'|field_value|default:'' }}"{% field_readonly fields|get_item:'17l' %} {% field_disabled fields|get_item:'17l' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">m</span>
+          <span class="schedule-2-line-text">Look-back interest under section 167(g) or 460(b) from Form 8697 or 8866 <span class="schedule-2-dots">. . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17m</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17m'|field_id }}" value="{{ fields|get_item:'17m'|field_value|default:'' }}"{% field_readonly fields|get_item:'17m' %} {% field_disabled fields|get_item:'17m' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">n</span>
+          <span class="schedule-2-line-text">Tax on non-effectively connected income for any part of the year you were a nonresident alien from Form 1040-NR</span>
+          <span class="schedule-2-line-box">17n</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17n'|field_id }}" value="{{ fields|get_item:'17n'|field_value|default:'' }}"{% field_readonly fields|get_item:'17n' %} {% field_disabled fields|get_item:'17n' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">o</span>
+          <span class="schedule-2-line-text">Any interest from Form 8621, line 16f, or Form 8997, line 7 <span class="schedule-2-dots">. . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">17o</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17o'|field_id }}" value="{{ fields|get_item:'17o'|field_value|default:'' }}"{% field_readonly fields|get_item:'17o' %} {% field_disabled fields|get_item:'17o' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-indent">
+          <span class="schedule-2-line-num">z</span>
+          <span class="schedule-2-line-text">Any other taxes. List type and amount: <span class="schedule-2-underline">___________________________</span></span>
+          <span class="schedule-2-line-box">17z</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'17z'|field_id }}" value="{{ fields|get_item:'17z'|field_value|default:'' }}"{% field_readonly fields|get_item:'17z' %} {% field_disabled fields|get_item:'17z' %} >
+        </div>
+
+        <div class="schedule-2-form-line">
+          <span class="schedule-2-line-num">18</span>
+          <span class="schedule-2-line-text"><strong>Total additional taxes. Add lines 17a through 17z</strong> <span class="schedule-2-dots">. . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-2-line-box">18</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}"{% field_readonly fields|get_item:'18' %} {% field_disabled fields|get_item:'18' %} >
+        </div>
+
+        <div class="schedule-2-form-line schedule-2-total-line">
+          <span class="schedule-2-line-num">19</span>
+          <span class="schedule-2-line-text"><strong>Add lines 4, 7 through 16, and 18. These are your total other taxes. Enter here and on Form 1040, 1040-SR, or 1040-NR, line 23</strong></span>
+          <span class="schedule-2-line-box">19</span>
+          <input type="text" class="schedule-2-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}"{% field_readonly fields|get_item:'19' %} {% field_disabled fields|get_item:'19' %} >
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="schedule-2-footer">
+    <div class="schedule-2-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div class="schedule-2-footer-center">
+      Cat. No. 71480G
+    </div>
+    <div class="schedule-2-footer-right">
+      <strong>Schedule 2 (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

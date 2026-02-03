@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule A (Form 8911) - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/schedule_a_8911.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="schedule-a-8911-container">
+  <div class="schedule-a-8911-top-header">
+    <div class="schedule-a-8911-top-left">
+      <div class="schedule-a-8911-form-label">SCHEDULE A</div>
+      <div class="schedule-a-8911-form-number">(Form 8911)</div>
+      <div class="schedule-a-8911-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-a-8911-top-center">
+      <div class="schedule-a-8911-main-title">Alternative Fuel Vehicle Refueling Property</div>
+      <div class="schedule-a-8911-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8911" target="_blank">www.irs.gov/Form8911</a> for instructions and the latest information.</strong></div>
+      <div class="schedule-a-8911-attach-note"><strong>▶ Attach to Form 8911.</strong></div>
+    </div>
+    <div class="schedule-a-8911-top-right">
+      <div class="schedule-a-8911-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-a-8911-year-large">{{ year }}</div>
+      <div class="schedule-a-8911-attachment">Attachment<br>Sequence No. <strong>85A</strong></div>
+    </div>
+  </div>
+
+  <div class="schedule-a-8911-name-row">
+    <div class="schedule-a-8911-name-box" style="flex: 3;">
+      <div class="schedule-a-8911-name-label">Name(s) shown on return</div>
+      <input type="text" class="schedule-a-8911-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="schedule-a-8911-ssn-box">
+      <div class="schedule-a-8911-name-label">Identifying number</div>
+      <input type="text" class="schedule-a-8911-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="schedule-a-8911-part-header">
+    Part I - Refueling Property Information
+  </div>
+
+  <div class="schedule-a-8911-section">
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">1</span>
+      <span class="schedule-a-8911-line-text">IRS-issued registration number for the refueling property</span>
+      <input type="text" class="schedule-a-8911-line-input text-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">2a</span>
+      <span class="schedule-a-8911-line-text">Description of refueling property</span>
+      <input type="text" class="schedule-a-8911-line-input text-input" name="{{ fields|get_item:'2a'|field_id }}" value="{{ fields|get_item:'2a'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">2b</span>
+      <span class="schedule-a-8911-line-text">If different than filer, enter owner's name</span>
+      <input type="text" class="schedule-a-8911-line-input text-input" name="{{ fields|get_item:'2b_name'|field_id }}" value="{{ fields|get_item:'2b_name'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num"></span>
+      <span class="schedule-a-8911-line-text">Owner's SSN or EIN</span>
+      <input type="text" class="schedule-a-8911-line-input" name="{{ fields|get_item:'2b_tin'|field_id }}" value="{{ fields|get_item:'2b_tin'|field_value|default:'' }}" style="width: 140px;">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">3a</span>
+      <span class="schedule-a-8911-line-text">Location of refueling property (address)</span>
+      <input type="text" class="schedule-a-8911-line-input text-input" name="{{ fields|get_item:'3a_address'|field_id }}" value="{{ fields|get_item:'3a_address'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">3b</span>
+      <span class="schedule-a-8911-line-text">Location coordinates - Latitude</span>
+      <input type="text" class="schedule-a-8911-line-input" name="{{ fields|get_item:'3b_latitude'|field_id }}" value="{{ fields|get_item:'3b_latitude'|field_value|default:'' }}" style="width: 120px;">
+      <span style="margin: 0 10px;">Longitude</span>
+      <input type="text" class="schedule-a-8911-line-input" name="{{ fields|get_item:'3b_longitude'|field_id }}" value="{{ fields|get_item:'3b_longitude'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">4</span>
+      <span class="schedule-a-8911-line-text">Date construction began</span>
+      <input type="text" class="schedule-a-8911-line-input date-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" placeholder="MM/DD/YYYY">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">5</span>
+      <span class="schedule-a-8911-line-text">Date placed in service</span>
+      <input type="text" class="schedule-a-8911-line-input date-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}" placeholder="MM/DD/YYYY">
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-checkbox-line">
+      <span class="schedule-a-8911-line-num">6a</span>
+      <span class="schedule-a-8911-line-text">Was the refueling property placed in service before 2023?</span>
+      <input type="checkbox" class="schedule-a-8911-checkbox" name="{{ fields|get_item:'6a'|field_id }}" {% if fields|get_item:'6a'|field_value %}checked{% endif %}>
+      <span>Yes</span>
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">6b</span>
+      <span class="schedule-a-8911-line-text">Census tract GEOID (11 digits)</span>
+      <input type="text" class="schedule-a-8911-line-input" name="{{ fields|get_item:'6b'|field_id }}" value="{{ fields|get_item:'6b'|field_value|default:'' }}" maxlength="11" style="width: 130px;">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">7</span>
+      <span class="schedule-a-8911-line-text">Certification/permit number</span>
+      <input type="text" class="schedule-a-8911-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" style="width: 180px;">
+    </div>
+  </div>
+
+  <div class="schedule-a-8911-part-header">
+    Part II - Credit Calculation for Business/Investment Use
+  </div>
+
+  <div class="schedule-a-8911-section">
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">8</span>
+      <span class="schedule-a-8911-line-text">Cost of the qualified alternative fuel vehicle refueling property</span>
+      <span class="schedule-a-8911-line-box">8</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">9</span>
+      <span class="schedule-a-8911-line-text">Business/investment use percentage</span>
+      <span class="schedule-a-8911-line-box">9</span>
+      <input type="text" class="schedule-a-8911-line-input percent-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" placeholder="%">
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-calc-line">
+      <span class="schedule-a-8911-line-num">10</span>
+      <span class="schedule-a-8911-line-text">Multiply line 8 by line 9</span>
+      <span class="schedule-a-8911-line-box">10</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">11</span>
+      <span class="schedule-a-8911-line-text">Section 179 expense deduction</span>
+      <span class="schedule-a-8911-line-box">11</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-calc-line">
+      <span class="schedule-a-8911-line-num">12</span>
+      <span class="schedule-a-8911-line-text">Subtract line 11 from line 10. If zero or less, enter -0-</span>
+      <span class="schedule-a-8911-line-box">12</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-checkbox-line">
+      <span class="schedule-a-8911-line-num">13</span>
+      <span class="schedule-a-8911-line-text">Does property meet prevailing wage and apprenticeship requirements?</span>
+      <input type="checkbox" class="schedule-a-8911-checkbox" name="{{ fields|get_item:'13'|field_id }}" {% if fields|get_item:'13'|field_value %}checked{% endif %}>
+      <span>Yes (if Yes, use 30%; if No, use 6%)</span>
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-calc-line">
+      <span class="schedule-a-8911-line-num">14</span>
+      <span class="schedule-a-8911-line-text">Multiply line 12 by applicable percentage (6% or 30%)</span>
+      <span class="schedule-a-8911-line-box">14</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">15</span>
+      <span class="schedule-a-8911-line-text">Maximum business use credit ($100,000 per item)</span>
+      <span class="schedule-a-8911-line-box">15</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-result-line">
+      <span class="schedule-a-8911-line-num">16</span>
+      <span class="schedule-a-8911-line-text"><strong>Business/investment use part credit.</strong> Smaller of line 14 or line 15. Enter here and include on Form 8911, line 1</span>
+      <span class="schedule-a-8911-line-box">16</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}" {% field_readonly fields|get_item:'16' %}>
+    </div>
+  </div>
+
+  <div class="schedule-a-8911-part-header">
+    Part III - Credit Calculation for Personal Use
+  </div>
+
+  <div class="schedule-a-8911-section">
+    <div class="schedule-a-8911-form-line schedule-a-8911-checkbox-line">
+      <span class="schedule-a-8911-line-num">17</span>
+      <span class="schedule-a-8911-line-text">Was the refueling property installed on property used as main home?</span>
+      <input type="checkbox" class="schedule-a-8911-checkbox" name="{{ fields|get_item:'17'|field_id }}" {% if fields|get_item:'17'|field_value %}checked{% endif %}>
+      <span>Yes</span>
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-calc-line">
+      <span class="schedule-a-8911-line-num">18</span>
+      <span class="schedule-a-8911-line-text">Subtract line 10 from line 8</span>
+      <span class="schedule-a-8911-line-box">18</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}" {% field_readonly fields|get_item:'18' %}>
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-calc-line">
+      <span class="schedule-a-8911-line-num">19</span>
+      <span class="schedule-a-8911-line-text">Multiply line 18 by applicable percentage (6% or 30%)</span>
+      <span class="schedule-a-8911-line-box">19</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" {% field_readonly fields|get_item:'19' %}>
+    </div>
+
+    <div class="schedule-a-8911-form-line">
+      <span class="schedule-a-8911-line-num">20</span>
+      <span class="schedule-a-8911-line-text">Maximum personal use credit ($1,000)</span>
+      <span class="schedule-a-8911-line-box">20</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-a-8911-form-line schedule-a-8911-result-line">
+      <span class="schedule-a-8911-line-num">21</span>
+      <span class="schedule-a-8911-line-text"><strong>Personal use part of credit.</strong> Smaller of line 19 or line 20. Enter here and include on Form 8911, line 4</span>
+      <span class="schedule-a-8911-line-box">21</span>
+      <input type="text" class="schedule-a-8911-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}" {% field_readonly fields|get_item:'21' %}>
+    </div>
+  </div>
+
+  <div class="schedule-a-8911-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see the instructions for Form 8911.</strong>
+    </div>
+    <div>
+      Cat. No. 37751N
+    </div>
+    <div>
+      <strong>Schedule A (Form 8911) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

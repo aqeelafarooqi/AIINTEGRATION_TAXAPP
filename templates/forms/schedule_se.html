@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule SE - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/schedule_se.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="schedule-se-container">
+  <div class="schedule-se-top-header">
+    <div class="schedule-se-top-left">
+      <div class="schedule-se-form-label">SCHEDULE SE</div>
+      <div class="schedule-se-form-number">(Form 1040)</div>
+      <div class="schedule-se-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-se-top-center">
+      <div class="schedule-se-main-title">Self-Employment Tax</div>
+      <div class="schedule-se-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/ScheduleSE" target="_blank">www.irs.gov/ScheduleSE</a> for instructions and the latest information.</strong></div>
+      <div class="schedule-se-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+    </div>
+    <div class="schedule-se-top-right">
+      <div class="schedule-se-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-se-year-large">{{ year }}</div>
+      <div class="schedule-se-attachment">Attachment<br>Sequence No. <strong>17</strong></div>
+    </div>
+  </div>
+
+  <div class="schedule-se-name-row">
+    <div class="schedule-se-name-box" style="flex: 3;">
+      <div class="schedule-se-name-label">Name of person with self-employment income</div>
+      <input type="text" class="schedule-se-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="schedule-se-ssn-box">
+      <div class="schedule-se-name-label">Social security number</div>
+      <input type="text" class="schedule-se-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="schedule-se-note">
+    <strong>Note:</strong> If your only income subject to self-employment tax is church employee income, see instructions for how to report your income and the definition of church employee income.
+  </div>
+
+  <div class="schedule-se-section">
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">A</span>
+      <span class="schedule-se-line-text">Check if exempt from self-employment tax (see Form 4361)</span>
+      <input type="checkbox" class="schedule-se-checkbox" name="{{ fields|get_item:'A'|field_id }}" {% if fields|get_item:'A'|field_value %}checked{% endif %}>
+    </div>
+  </div>
+
+  <div class="schedule-se-part-header">
+    Part I - Self-Employment Tax
+  </div>
+
+  <div class="schedule-se-section">
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">1a</span>
+      <span class="schedule-se-line-text">Net farm profit or (loss) from Schedule F, line 34, and farm partnerships</span>
+      <span class="schedule-se-line-box">1a</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'1a'|field_id }}" value="{{ fields|get_item:'1a'|field_value|default:'' }}" {% field_readonly fields|get_item:'1a' %}>
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">1b</span>
+      <span class="schedule-se-line-text">Conservation Reserve Program payments included on Schedule F</span>
+      <span class="schedule-se-line-box">1b</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'1b'|field_id }}" value="{{ fields|get_item:'1b'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">2</span>
+      <span class="schedule-se-line-text">Net profit or (loss) from Schedule C, line 31</span>
+      <span class="schedule-se-line-box">2</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" {% field_readonly fields|get_item:'2' %}>
+    </div>
+
+    <div class="schedule-se-form-line schedule-se-calc-line">
+      <span class="schedule-se-line-num">3</span>
+      <span class="schedule-se-line-text">Combine lines 1a, 1b, and 2</span>
+      <span class="schedule-se-line-box">3</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+
+    <div class="schedule-se-form-line schedule-se-calc-line">
+      <span class="schedule-se-line-num">4</span>
+      <span class="schedule-se-line-text">Multiply line 3 by 92.35% (0.9235). If less than $400, don't file this schedule</span>
+      <span class="schedule-se-line-box">4</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'4a'|field_id }}" value="{{ fields|get_item:'4a'|field_value|default:'' }}" {% field_readonly fields|get_item:'4a' %}>
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">6</span>
+      <span class="schedule-se-line-text">Net earnings from self-employment</span>
+      <span class="schedule-se-line-box">6</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">8a</span>
+      <span class="schedule-se-line-text">Total social security wages and tips (Form W-2)</span>
+      <span class="schedule-se-line-box">8a</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'8a'|field_id }}" value="{{ fields|get_item:'8a'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">8b</span>
+      <span class="schedule-se-line-text">Unreported tips subject to social security tax</span>
+      <span class="schedule-se-line-box">8b</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'8b'|field_id }}" value="{{ fields|get_item:'8b'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">8c</span>
+      <span class="schedule-se-line-text">Wages subject to social security tax (from Form 8919)</span>
+      <span class="schedule-se-line-box">8c</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'8c'|field_id }}" value="{{ fields|get_item:'8c'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line schedule-se-calc-line">
+      <span class="schedule-se-line-num">8d</span>
+      <span class="schedule-se-line-text">Add lines 8a, 8b, and 8c</span>
+      <span class="schedule-se-line-box">8d</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'8d'|field_id }}" value="{{ fields|get_item:'8d'|field_value|default:'' }}" {% field_readonly fields|get_item:'8d' %}>
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">10</span>
+      <span class="schedule-se-line-text">Multiply the smaller of line 6 or line 9 by 12.4% (0.124)</span>
+      <span class="schedule-se-line-box">10</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">11</span>
+      <span class="schedule-se-line-text">Multiply line 6 by 2.9% (0.029)</span>
+      <span class="schedule-se-line-box">11</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+
+    <div class="schedule-se-form-line schedule-se-result-line">
+      <span class="schedule-se-line-num">12</span>
+      <span class="schedule-se-line-text"><strong>Self-employment tax.</strong> Add lines 10 and 11. Enter here and on Schedule 2, line 4</span>
+      <span class="schedule-se-line-box">12</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="schedule-se-form-line schedule-se-total-line">
+      <span class="schedule-se-line-num">13</span>
+      <span class="schedule-se-line-text"><strong>Deduction for one-half of self-employment tax.</strong> Multiply line 12 by 50%. Enter on Schedule 1, line 15</span>
+      <span class="schedule-se-line-box">13</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}" {% field_readonly fields|get_item:'13' %}>
+    </div>
+  </div>
+
+  <div class="schedule-se-part-header">
+    Part II - Optional Methods To Figure Net Earnings
+  </div>
+
+  <div class="schedule-se-section">
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">15</span>
+      <span class="schedule-se-line-text">Farm Optional Method</span>
+      <span class="schedule-se-line-box">15</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">16</span>
+      <span class="schedule-se-line-text">Nonfarm Optional Method</span>
+      <span class="schedule-se-line-box">16</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+    </div>
+
+    <div class="schedule-se-form-line">
+      <span class="schedule-se-line-num">17</span>
+      <span class="schedule-se-line-text">Maximum income for optional methods</span>
+      <span class="schedule-se-line-box">17</span>
+      <input type="text" class="schedule-se-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="schedule-se-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 11358Z
+    </div>
+    <div>
+      <strong>Schedule SE (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

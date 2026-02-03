@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule A - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<style>
+  {% inline_static 'css/schedule_a.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+{% if request.user.is_superuser %}
+As superuser you can <a href="{% url " edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+{% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="{% if taxpayer %}/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/{% else %}/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/{% endif %}">
+{% endif %}
+{% csrf_token %}
+
+<div class="schedule-a-container">
+  <!-- Header -->
+  <div class="schedule-a-top-header">
+    <div class="schedule-a-top-left">
+      <div class="schedule-a-form-label">SCHEDULE A</div>
+      <div class="schedule-a-form-number">(Form 1040)</div>
+      <div class="schedule-a-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="schedule-a-top-center">
+      <div class="schedule-a-main-title">Itemized Deductions</div>
+      <div class="schedule-a-attach-note"><strong>Attach to Form 1040 or 1040-SR.</strong></div>
+      <div class="schedule-a-web-link"><strong>Go to <em>www.irs.gov/ScheduleA</em> for instructions and the latest
+          information.</strong></div>
+      <div class="schedule-a-caution-line"><strong>Caution:</strong> If you are claiming a net qualified disaster loss
+        on Form 4684, see the instructions for line 16.</div>
+    </div>
+    <div class="schedule-a-top-right">
+      <div class="schedule-a-omb-line">OMB No. 1545-0074</div>
+      <div class="schedule-a-year-large">2024</div>
+      <div class="schedule-a-attachment">Attachment<br>Sequence No. <strong>07</strong></div>
+      <div class="schedule-a-ssn-label">Your social security number</div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="schedule-a-name-row">
+    <div class="schedule-a-name-label">Name(s) shown on Form 1040 or 1040-SR</div>
+    <span style="color: #0033CC; font-weight: bold;">
+      {% if taxpayer %}
+        {{ taxpayer.first_name|default:'' }} {{ taxpayer.last_name|default:'' }}
+        {% if taxpayer.taxpayer_spouse %}
+          and {{ taxpayer.taxpayer_spouse.first_name|default:'' }} {{ taxpayer.taxpayer_spouse.last_name|default:'' }}
+        {% endif %}
+      {% elif user.first_name %}
+        {{ user.first_name|default:'' }} {{ user.last_name|default:'' }}
+        {% if user.user_spouse %}
+          and {{ user.user_spouse.first_name|default:'' }} {{ user.user_spouse.last_name|default:'' }}
+        {% endif %}
+      {% endif %}
+    </span>
+    <div class="schedule-a-ssn-box">
+      <span style="color: #0033CC;">{{ taxpayer.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Main form table -->
+  <table class="schedule-a-main-table">
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Medical<br>and<br>Dental<br>Expenses</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-caution-header"><strong>Caution:</strong> Do not include expenses reimbursed or paid by
+          others.</div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">1</span>
+          <span class="schedule-a-line-text">Medical and dental expenses (see instructions) <span
+              class="schedule-a-dots">. . . . . .</span></span>
+          <span class="schedule-a-line-box-small">1</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}"{% field_readonly fields|get_item:'1' %} {% field_disabled fields|get_item:'1' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">2</span>
+          <span class="schedule-a-line-text">Enter amount from Form 1040 or 1040-SR, line 11 <span
+              class="schedule-a-pipe">|</span> <strong>2</strong> <span class="schedule-a-pipe">|</span></span>
+          <span class="schedule-a-line-box-gray">2</span>
+          <input type="text" class="schedule-a-input-gray irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}"{% field_readonly fields|get_item:'2' %} {% field_disabled fields|get_item:'2' %} 
+            readonly>
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">3</span>
+          <span class="schedule-a-line-text">Multiply line 2 by 7.5% (0.075) <span class="schedule-a-dots">. . . . . . .
+              . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">3</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}"{% field_readonly fields|get_item:'3' %} {% field_disabled fields|get_item:'3' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">4</span>
+          <span class="schedule-a-line-text">Subtract line 3 from line 1. If line 3 is more than line 1, enter -0- <span
+              class="schedule-a-dots">. . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">4</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}"{% field_readonly fields|get_item:'4' %} {% field_disabled fields|get_item:'4' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Taxes You<br>Paid</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">5</span>
+          <span class="schedule-a-line-text">State and local taxes.</span>
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>a</strong></span>
+          <span class="schedule-a-line-text">State and local income taxes or general sales taxes. You may include<br>
+            either income taxes or general sales taxes on line 5a, but not both. If<br>
+            you elect to include general sales taxes instead of income taxes,<br>
+            check this box <span class="schedule-a-dots">. . . . . . . . . . . . . . . .</span> <input type="checkbox"
+              class="schedule-a-checkbox-inline"></span>
+          <span class="schedule-a-line-box-small">5a</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'5a'|field_id }}" value="{{ fields|get_item:'5a'|field_value|default:'' }}"{% field_readonly fields|get_item:'5a' %} {% field_disabled fields|get_item:'5a' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>b</strong></span>
+          <span class="schedule-a-line-text">State and local real estate taxes (see instructions) <span
+              class="schedule-a-dots">. . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">5b</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'5b'|field_id }}" value="{{ fields|get_item:'5b'|field_value|default:'' }}"{% field_readonly fields|get_item:'5b' %} {% field_disabled fields|get_item:'5b' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>c</strong></span>
+          <span class="schedule-a-line-text">State and local personal property taxes <span class="schedule-a-dots">. . .
+              . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">5c</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'5c'|field_id }}" value="{{ fields|get_item:'5c'|field_value|default:'' }}"{% field_readonly fields|get_item:'5c' %} {% field_disabled fields|get_item:'5c' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>d</strong></span>
+          <span class="schedule-a-line-text">Add lines 5a through 5c <span class="schedule-a-dots">. . . . . . . . . . .
+              . . . .</span></span>
+          <span class="schedule-a-line-box-small">5d</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'5d'|field_id }}" value="{{ fields|get_item:'5d'|field_value|default:'' }}"{% field_readonly fields|get_item:'5d' %} {% field_disabled fields|get_item:'5d' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>e</strong></span>
+          <span class="schedule-a-line-text">Enter the smaller of line 5d or $10,000 ($5,000 if married filing<br>
+            separately) <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">5e</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'5e'|field_id }}" value="{{ fields|get_item:'5e'|field_value|default:'' }}"{% field_readonly fields|get_item:'5e' %} {% field_disabled fields|get_item:'5e' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">6</span>
+          <span class="schedule-a-line-text">Other taxes. List type and amount: <span
+              class="schedule-a-underline">________________</span></span>
+          <span class="schedule-a-line-box-small">6</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}"{% field_readonly fields|get_item:'6' %} {% field_disabled fields|get_item:'6' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-dotted-top">
+          <span class="schedule-a-line-num">7</span>
+          <span class="schedule-a-line-text">Add lines 5e and 6 <span class="schedule-a-dots">. . . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">7</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}"{% field_readonly fields|get_item:'7' %} {% field_disabled fields|get_item:'7' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Interest<br>You Paid</div>
+        <div class="schedule-a-caution-left"><strong>Caution:</strong> Your<br>mortgage interest<br>deduction may
+          be<br>limited. See<br>instructions.</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-caution-header"><strong>Caution:</strong> Your mortgage interest deduction may be limited
+          (see instructions).</div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">8</span>
+          <span class="schedule-a-line-text">Home mortgage interest and points. If you didn't use all of your home<br>
+            mortgage loan(s) to buy, build, or improve your home, see<br>
+            instructions and check this box <span class="schedule-a-dots">. . . .</span> <input type="checkbox"
+              class="schedule-a-checkbox-inline"></span>
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>a</strong></span>
+          <span class="schedule-a-line-text">Home mortgage interest and points reported to you on Form 1098.<br>
+            See instructions if limited <span class="schedule-a-dots">. . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">8a</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'8a'|field_id }}" value="{{ fields|get_item:'8a'|field_value|default:'' }}"{% field_readonly fields|get_item:'8a' %} {% field_disabled fields|get_item:'8a' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>b</strong></span>
+          <span class="schedule-a-line-text">Home mortgage interest not reported to you on Form 1098. See<br>
+            instructions if limited. If paid to the person from whom you bought the<br>
+            home, see instructions and show that person's name, identifying no.,<br>
+            and address <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">8b</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'8b'|field_id }}" value="{{ fields|get_item:'8b'|field_value|default:'' }}"{% field_readonly fields|get_item:'8b' %} {% field_disabled fields|get_item:'8b' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-dotted-both">
+          <div style="height: 2px;"></div>
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>c</strong></span>
+          <span class="schedule-a-line-text">Points not reported to you on Form 1098. See instructions for special<br>
+            rules <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">8c</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'8c'|field_id }}" value="{{ fields|get_item:'8c'|field_value|default:'' }}"{% field_readonly fields|get_item:'8c' %} {% field_disabled fields|get_item:'8c' %} >
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>d</strong></span>
+          <span class="schedule-a-line-text">Reserved for future use <span class="schedule-a-dots">. . . . . . . . . . .
+              . . . .</span></span>
+          <span class="schedule-a-line-box-gray">8d</span>
+          <input type="text" class="schedule-a-input-gray" value="" readonly disabled>
+        </div>
+
+        <div class="schedule-a-form-line schedule-a-indent-line">
+          <span class="schedule-a-line-num"><strong>e</strong></span>
+          <span class="schedule-a-line-text">Add lines 8a through 8c <span class="schedule-a-dots">. . . . . . . . . . .
+              . . . . .</span></span>
+          <span class="schedule-a-line-box-gray">8e</span>
+          <input type="text" class="schedule-a-input-gray irs-line-input" name="{{ fields|get_item:'8e'|field_id }}" value="{{ fields|get_item:'8e'|field_value|default:'' }}"{% field_readonly fields|get_item:'8e' %} {% field_disabled fields|get_item:'8e' %} 
+            readonly>
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">9</span>
+          <span class="schedule-a-line-text">Investment interest. Attach Form 4952 if required. See instructions</span>
+          <span class="schedule-a-line-box-small">9</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}"{% field_readonly fields|get_item:'9' %} {% field_disabled fields|get_item:'9' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">10</span>
+          <span class="schedule-a-line-text">Add lines 8e and 9 <span class="schedule-a-dots">. . . . . . . . . . . . .
+              . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">10</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}"{% field_readonly fields|get_item:'10' %} {% field_disabled fields|get_item:'10' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Gifts to<br>Charity</div>
+        <div class="schedule-a-caution-left"><strong>Caution:</strong> If you<br>made a gift and<br>got a benefit for
+          it,<br>see instructions.</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-caution-header"><strong>Caution:</strong> If you made a gift and got a benefit for it,
+          see instructions.</div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">11</span>
+          <span class="schedule-a-line-text">Gifts by cash or check. If you made any gift of $250 or more, see<br>
+            instructions <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">11</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}"{% field_readonly fields|get_item:'11' %} {% field_disabled fields|get_item:'11' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">12</span>
+          <span class="schedule-a-line-text">Other than by cash or check. If you made any gift of $250 or more,<br>
+            see instructions. You <strong>must</strong> attach Form 8283 if over $500 <span class="schedule-a-dots">. .
+              . .</span></span>
+          <span class="schedule-a-line-box-small">12</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}"{% field_readonly fields|get_item:'12' %} {% field_disabled fields|get_item:'12' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">13</span>
+          <span class="schedule-a-line-text">Carryover from prior year <span class="schedule-a-dots">. . . . . . . . . .
+              . . . . .</span></span>
+          <span class="schedule-a-line-box-small">13</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}"{% field_readonly fields|get_item:'13' %} {% field_disabled fields|get_item:'13' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">14</span>
+          <span class="schedule-a-line-text">Add lines 11 through 13 <span class="schedule-a-dots">. . . . . . . . . . .
+              . . . . . . . .</span></span>
+          <span class="schedule-a-line-box-small">14</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}"{% field_readonly fields|get_item:'14' %} {% field_disabled fields|get_item:'14' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Casualty and<br>Theft Losses</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">15</span>
+          <span class="schedule-a-line-text">Casualty and theft loss(es) from a federally declared disaster (other than
+            net qualified<br>
+            disaster losses). Attach Form 4684 and enter the amount from line 18 of that form. See<br>
+            instructions <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . . . . . . . .
+              .</span></span>
+          <span class="schedule-a-line-box-small">15</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}"{% field_readonly fields|get_item:'15' %} {% field_disabled fields|get_item:'15' %} >
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Other<br>Itemized<br>Deductions</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">16</span>
+          <span class="schedule-a-line-text">Other—from list in instructions. List type and amount: <span
+              class="schedule-a-underline">___________________</span></span>
+          <span class="schedule-a-line-box-small">16</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}"{% field_readonly fields|get_item:'16' %} {% field_disabled fields|get_item:'16' %} >
+        </div>
+        <div class="schedule-a-form-line schedule-a-dotted-top">
+          <div style="height: 2px;"></div>
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="schedule-a-left-column">
+        <div class="schedule-a-section-header">Total<br>Itemized<br>Deductions</div>
+      </td>
+      <td class="schedule-a-middle-column">
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">17</span>
+          <span class="schedule-a-line-text">Add the amounts in the far right column for lines 4 through 16. Also, enter
+            this amount on<br>
+            Form 1040 or 1040-SR, line 12 <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . .
+              .</span></span>
+          <span class="schedule-a-line-box-small">17</span>
+          <input type="text" class="schedule-a-input-main irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}"{% field_readonly fields|get_item:'17' %} {% field_disabled fields|get_item:'17' %} >
+        </div>
+
+        <div class="schedule-a-form-line">
+          <span class="schedule-a-line-num">18</span>
+          <span class="schedule-a-line-text">If you elect to itemize deductions even though they are less than your
+            standard deduction,<br>
+            check this box <span class="schedule-a-dots">. . . . . . . . . . . . . . . . . . . . . . . . .</span> <input
+              type="checkbox" class="schedule-a-checkbox-inline"></span>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Footer -->
+  <div class="schedule-a-footer">
+    <div class="schedule-a-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see the Instructions for Form 1040.</strong>
+    </div>
+    <div class="schedule-a-footer-center">
+      Cat. No. 17145C
+    </div>
+    <div class="schedule-a-footer-right">
+      <strong>Schedule A (Form 1040) 2024</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+      console.log('Form initialized. isInIframe:', isInIframe);
+      console.log('Form action:', form.action);
+
+      form.addEventListener('submit', function(event) {
+        console.log('Form submit triggered. isInIframe:', isInIframe);
+
+        if (!isInIframe) {
+          console.log('Not in iframe - allowing normal POST submit');
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        console.log('In iframe - using postMessage');
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          console.log('Sending postMessage to:', parentOrigin, 'with URL:', apiAction);
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

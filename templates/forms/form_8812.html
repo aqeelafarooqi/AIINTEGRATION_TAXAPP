@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Schedule 8812 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<style>
+  {% inline_static 'css/form_8812.css' %}
+</style>
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% else %}
+  <form name="form" action="/api/v1/taxpayer/self/render/form/{{ form.year.name }}/{{ form.id }}/" method="post">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="form-8812-container">
+  <!-- Header -->
+  <div class="form-8812-top-header">
+    <div class="form-8812-top-left">
+      <div class="form-8812-form-label">SCHEDULE 8812</div>
+      <div class="form-8812-form-number">(Form 1040)</div>
+      <div class="form-8812-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8812-top-center">
+      <div class="form-8812-main-title">Credits for Qualifying Children<br>and Other Dependents</div>
+      <div class="form-8812-attach-note"><strong>Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="form-8812-web-link"><strong>Go to <em>www.irs.gov/Schedule8812</em> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-8812-top-right">
+      <div class="form-8812-omb-line">OMB No. 1545-0074</div>
+      <div class="form-8812-year-large">{{ year }}</div>
+      <div class="form-8812-attachment">Attachment<br>Sequence No. <strong>47</strong></div>
+    </div>
+  </div>
+
+  <!-- Name and SSN row -->
+  <div class="form-8812-name-row">
+    <div class="form-8812-name-label">
+      <strong>Name(s) shown on return</strong><br>
+      <span style="color: #0033CC; font-weight: bold;">
+        {{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}
+        {% if spouse %}
+          and {{ spouse.first_name|default:'' }} {{ spouse.last_name|default:'' }}
+        {% endif %}
+      </span>
+    </div>
+    <div class="form-8812-ssn-box">
+      <strong>Your social security number</strong><br>
+      <span style="color: #0033CC;">{{ taxpayer_obj.ssn|default:'' }}</span>
+    </div>
+  </div>
+
+  <!-- Part I -->
+  <div class="form-8812-part-header">
+    Part I &nbsp;&nbsp; Child Tax Credit and Credit for Other Dependents
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">1</span>
+    <span class="form-8812-line-text">Enter the amount from line 11 of your Form 1040, 1040-SR, or 1040-NR <span class="form-8812-dots">. . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">1</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'1'|field_id }}" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">2a</span>
+    <span class="form-8812-line-text">Enter income from Puerto Rico that you excluded <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">2a</span>
+    <input type="text" class="form-8812-line-input form-8812-gray-field" value="" readonly>
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent">
+    <span class="form-8812-line-num">b</span>
+    <span class="form-8812-line-text">Enter the amounts from lines 45 and 50 of your Form 2555 <span class="form-8812-dots">. . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">2b</span>
+    <input type="text" class="form-8812-line-input form-8812-gray-field" value="" readonly>
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent">
+    <span class="form-8812-line-num">c</span>
+    <span class="form-8812-line-text">Enter the amount from line 15 of your Form 4563 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">2c</span>
+    <input type="text" class="form-8812-line-input form-8812-gray-field" value="" readonly>
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent">
+    <span class="form-8812-line-num">d</span>
+    <span class="form-8812-line-text">Add lines 2a through 2c <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">2d</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'2d'|field_id }}" name="{{ fields|get_item:'2d'|field_id }}" value="{{ fields|get_item:'2d'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">3</span>
+    <span class="form-8812-line-text">Add lines 1 and 2d <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">3</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'3'|field_id }}" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">4</span>
+    <span class="form-8812-line-text">Number of qualifying children under age 17 with the required social security number <span class="form-8812-dots">. . .</span></span>
+    <span class="form-8812-line-box">4</span>
+    <input type="text" class="form-8812-line-input form-8812-line-input-small" name="{{ fields|get_item:'4'|field_id }}" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">5</span>
+    <span class="form-8812-line-text">Multiply line 4 by $2,000 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">5</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'5'|field_id }}" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">6</span>
+    <span class="form-8812-line-text">Number of other dependents, including any qualifying children who are not under age 17 or who do not have the required social security number <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">6</span>
+    <input type="text" class="form-8812-line-input form-8812-line-input-small" name="{{ fields|get_item:'6'|field_id }}" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-caution">
+    <span class="form-8812-caution-title">Caution:</span> Do not include yourself, your spouse, or anyone who is not a U.S. citizen, U.S. national, or U.S. resident alien. Also, do not include anyone you included on line 4.
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">7</span>
+    <span class="form-8812-line-text">Multiply line 6 by $500 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">7</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'7'|field_id }}" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">8</span>
+    <span class="form-8812-line-text">Add lines 5 and 7 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">8</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'8'|field_id }}" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">9</span>
+    <span class="form-8812-line-text">Enter the amount shown below for your filing status.</span>
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent form-8812-no-border">
+    <span class="form-8812-line-text">
+      • Married filing jointly—$400,000<br>
+      • All other filing statuses—$200,000
+      <span class="form-8812-dots" style="float: right; margin-right: 130px;">. . . . . . . . . . . . . . . . . . . . . . . . . .</span>
+    </span>
+    <span class="form-8812-line-box">9</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'9'|field_id }}" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">10</span>
+    <span class="form-8812-line-text">Subtract line 9 from line 3.</span>
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent form-8812-no-border">
+    <span class="form-8812-line-text">
+      • If zero or less, enter -0-.<br>
+      • If more than zero and not a multiple of $1,000, enter the next multiple of $1,000. For example, if the result is $425, enter $1,000; if the result is $1,025, enter $2,000, etc.
+      <span class="form-8812-dots" style="float: right; margin-right: 130px;">. . . . . . . . . .</span>
+    </span>
+    <span class="form-8812-line-box">10</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'10'|field_id }}" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">11</span>
+    <span class="form-8812-line-text">Multiply line 10 by 5% (0.05) <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">11</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'11'|field_id }}" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">12</span>
+    <span class="form-8812-line-text">Is the amount on line 8 more than the amount on line 11?</span>
+  </div>
+
+  <div class="form-8812-stop-box">
+    <div style="display: flex; align-items: flex-start;">
+      <input type="checkbox" class="form-8812-checkbox">
+      <div style="flex: 1;">
+        <span class="form-8812-stop-title">No. STOP.</span> You cannot take the child tax credit, credit for other dependents, or additional child tax credit. Skip Parts II-A and II-B. Enter -0- on lines 14 and 27.
+      </div>
+    </div>
+    <div style="display: flex; align-items: flex-start; margin-top: 10px;">
+      <input type="checkbox" class="form-8812-checkbox">
+      <div style="flex: 1;">
+        <span class="form-8812-stop-title">Yes.</span> Subtract line 11 from line 8. Enter the result.
+        <span style="float: right; margin-right: 10px;">
+          <span class="form-8812-line-box">12</span>
+          <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'12'|field_id }}" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" style="display: inline-block; width: 120px;">
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">13</span>
+    <span class="form-8812-line-text">Enter the amount from <strong>Credit Limit Worksheet A</strong> <span class="form-8812-dots">. . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">13</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'13'|field_id }}" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line form-8812-total-line">
+    <span class="form-8812-line-num">14</span>
+    <span class="form-8812-line-text">Enter the smaller of line 12 or line 13. <strong>This is your child tax credit and credit for other dependents</strong> <span class="form-8812-dots">. . .</span><br>
+    <strong>Enter this amount on Form 1040, 1040-SR, or 1040-NR, line 19.</strong></span>
+    <span class="form-8812-line-box">14</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'14'|field_id }}" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-caution" style="margin-top: 10px;">
+    If the amount on line 12 is more than the amount on line 14, you may be able to take the <strong>additional child tax credit</strong> on Form 1040, 1040-SR, or 1040-NR, line 28. Complete your Form 1040, 1040-SR, or 1040-NR through line 27 (also complete Schedule 3, line 11) before completing Part II-A.
+  </div>
+
+  <!-- Part II-A -->
+  <div class="form-8812-part-header">
+    Part II-A &nbsp;&nbsp; Additional Child Tax Credit for All Filers
+  </div>
+
+  <div class="form-8812-caution">
+    <span class="form-8812-caution-title">Caution:</span> If you file Form 2555, you cannot claim the additional child tax credit.
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">15</span>
+    <span class="form-8812-line-text">Check this box if you <strong>do not</strong> want to claim the additional child tax credit. Skip Parts II-A and II-B. Enter -0- on line 27 <span class="form-8812-dots">. . .</span></span>
+    <input type="checkbox" class="form-8812-checkbox" name="{{ fields|get_item:'15'|field_id }}" {% if fields|get_item:'15'|field_value %}checked{% endif %}>
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">16a</span>
+    <span class="form-8812-line-text">Subtract line 14 from line 12. If zero, stop here; you cannot take the additional child tax credit. Skip Parts II-A and II-B. Enter -0- on line 27 <span class="form-8812-dots">. . . . . . . . .</span></span>
+    <span class="form-8812-line-box">16a</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'16a'|field_id }}" value="{{ fields|get_item:'16a'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent">
+    <span class="form-8812-line-num">b</span>
+    <span class="form-8812-line-text">Number of qualifying children under 17 with the required social security number <span class="form-8812-dots">. . . . .</span></span>
+    <span class="form-8812-line-box">16b</span>
+    <input type="text" class="form-8812-line-input form-8812-line-input-small" name="{{ fields|get_item:'16b'|field_id }}" value="{{ fields|get_item:'16b'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-tip">
+    <span class="form-8812-tip-title">TIP:</span> The number of children you use for this line is the same as the number of children you used for line 4.
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">17</span>
+    <span class="form-8812-line-text">Multiply line 16b by $1,700. Enter the result <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">17</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">18a</span>
+    <span class="form-8812-line-text">Earned income (see instructions) <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">18a</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'18a'|field_id }}" value="{{ fields|get_item:'18a'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line form-8812-indent">
+    <span class="form-8812-line-num">b</span>
+    <span class="form-8812-line-text">Nontaxable combat pay (see instructions) <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">18b</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'18b'|field_id }}" value="{{ fields|get_item:'18b'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">19</span>
+    <span class="form-8812-line-text">Is the amount on line 18a more than $2,500?</span>
+  </div>
+
+  <div class="form-8812-stop-box">
+    <div style="display: flex; align-items: flex-start;">
+      <input type="checkbox" class="form-8812-checkbox">
+      <div style="flex: 1;">
+        <span class="form-8812-stop-title">No.</span> Leave line 19 blank and enter -0- on line 20.
+      </div>
+    </div>
+    <div style="display: flex; align-items: flex-start; margin-top: 10px;">
+      <input type="checkbox" class="form-8812-checkbox">
+      <div style="flex: 1;">
+        <span class="form-8812-stop-title">Yes.</span> Subtract $2,500 from the amount on line 18a. Enter the result.
+        <span style="float: right; margin-right: 10px;">
+          <span class="form-8812-line-box">19</span>
+          <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" style="display: inline-block; width: 120px;">
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">20</span>
+    <span class="form-8812-line-text">Multiply the amount on line 19 by 15% (0.15) and enter the result <span class="form-8812-dots">. . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">20</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-instruction-box">
+    <strong>Next.</strong> On line 16b, is the amount $4,700 or more?
+    <ul style="margin-top: 5px; margin-bottom: 5px;">
+      <li><strong>No.</strong> If line 20 is zero, stop here; you cannot take the additional child tax credit. Otherwise, skip Part II-B and enter the <strong>smaller</strong> of line 16a or line 20 on line 27.</li>
+      <li><strong>Yes.</strong> If line 20 is equal to or more than line 16a, skip Part II-B and enter the amount from line 16a on line 27. Otherwise, go to line 21.</li>
+    </ul>
+  </div>
+
+  <!-- Part II-B -->
+  <div class="form-8812-part-header">
+    Part II-B &nbsp;&nbsp; Certain Filers Who Have Three or More Qualifying Children and Bona Fide Residents of Puerto Rico
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">21</span>
+    <span class="form-8812-line-text">Withheld social security, Medicare, and Additional Medicare taxes from Form(s) W-2, boxes 4 and 6. If married filing jointly, include your spouse's amounts with yours. If your employer withheld or you paid Additional Medicare Tax or tier 1 RRTA taxes, see instructions <span class="form-8812-dots">. . . . . . . . .</span></span>
+    <span class="form-8812-line-box">21</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">22</span>
+    <span class="form-8812-line-text">Enter the total of the amounts from Schedule 1 (Form 1040), line 15; Schedule 2 (Form 1040), line 5; Schedule 2 (Form 1040), line 6; and Schedule 2 (Form 1040), line 13 <span class="form-8812-dots">. . . . . . .</span></span>
+    <span class="form-8812-line-box">22</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'22'|field_id }}" value="{{ fields|get_item:'22'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">23</span>
+    <span class="form-8812-line-text">Add lines 21 and 22 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">23</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">24</span>
+    <span class="form-8812-line-text">1040 and 1040-SR filers: Enter the total of the amounts from Form 1040 or 1040-SR, line 27, and Schedule 3 (Form 1040), line 11.<br>1040-NR filers: Enter the amount from Schedule 3 (Form 1040), line 11 <span class="form-8812-dots">. . . .</span></span>
+    <span class="form-8812-line-box">24</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'24'|field_id }}" value="{{ fields|get_item:'24'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">25</span>
+    <span class="form-8812-line-text">Subtract line 24 from line 23. If zero or less, enter -0- <span class="form-8812-dots">. . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">25</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'25'|field_id }}" value="{{ fields|get_item:'25'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-form-line">
+    <span class="form-8812-line-num">26</span>
+    <span class="form-8812-line-text">Enter the <strong>larger</strong> of line 20 or line 25 <span class="form-8812-dots">. . . . . . . . . . . . . . . . . . . . . . . .</span></span>
+    <span class="form-8812-line-box">26</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'26'|field_id }}" value="{{ fields|get_item:'26'|field_value|default:'' }}">
+  </div>
+
+  <div class="form-8812-instruction-box">
+    <strong>Next,</strong> enter the <strong>smaller</strong> of line 16a or line 26 on line 27.
+  </div>
+
+  <!-- Part II-C -->
+  <div class="form-8812-part-header">
+    Part II-C &nbsp;&nbsp; Additional Child Tax Credit
+  </div>
+
+  <div class="form-8812-form-line form-8812-total-line">
+    <span class="form-8812-line-num">27</span>
+    <span class="form-8812-line-text"><strong>This is your additional child tax credit.</strong> Enter this amount on Form 1040, 1040-SR, or 1040-NR, line 28 <span class="form-8812-dots">. . .</span></span>
+    <span class="form-8812-line-box">27</span>
+    <input type="text" class="form-8812-line-input" name="{{ fields|get_item:'27'|field_id }}" value="{{ fields|get_item:'27'|field_value|default:'' }}">
+  </div>
+
+  <!-- Footer -->
+  <div class="form-8812-footer">
+    <div class="form-8812-footer-left">
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div class="form-8812-footer-center">
+      Cat. No. 59761M
+    </div>
+    <div class="form-8812-footer-right">
+      <strong>Schedule 8812 (Form 1040) {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin;
+        const currentOrigin = window.location.origin;
+
+        try {
+          parentOrigin = window.parent.location.origin;
+        } catch (e) {
+          if (currentOrigin === 'null') {
+            parentOrigin = 'http://localhost:5100';
+          } else if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+            parentOrigin = 'http://localhost:5100';
+          } else {
+            parentOrigin = 'https://lowercoststaxes.com';
+          }
+        }
+
+        try {
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: event.target.action
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

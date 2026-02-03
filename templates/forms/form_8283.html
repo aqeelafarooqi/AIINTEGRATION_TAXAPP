@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8283 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8283.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8283-container">
+  <div class="form-8283-top-header">
+    <div class="form-8283-top-left">
+      <div class="form-8283-form-label">Form 8283</div>
+      <div class="form-8283-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8283-top-center">
+      <div class="form-8283-main-title">Noncash Charitable Contributions</div>
+      <div class="form-8283-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8283" target="_blank">www.irs.gov/Form8283</a> for instructions and the latest information.</strong></div>
+      <div class="form-8283-attach-note"><strong>▶ Attach to your tax return if you claimed a total deduction of over $500 for all contributed property.</strong></div>
+    </div>
+    <div class="form-8283-top-right">
+      <div class="form-8283-omb-line">OMB No. 1545-0908</div>
+      <div class="form-8283-year-large">{{ year }}</div>
+      <div class="form-8283-attachment">Attachment<br>Sequence No. <strong>155</strong></div>
+    </div>
+  </div>
+
+  <div class="form-8283-name-row">
+    <div class="form-8283-name-box" style="flex: 3;">
+      <div class="form-8283-name-label">Name(s) shown on your income tax return</div>
+      <input type="text" class="form-8283-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8283-ssn-box">
+      <div class="form-8283-name-label">Identifying number</div>
+      <input type="text" class="form-8283-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8283-note">
+    <strong>Note:</strong> Figure the amount of your contribution deduction before completing this form. See your tax return instructions.
+  </div>
+
+  <div class="form-8283-section-header">
+    Section A. Donated Property of $5,000 or Less and Publicly Traded Securities
+  </div>
+
+  <div class="form-8283-part-header">
+    Part I - Information on Donated Property
+  </div>
+
+  <div class="form-8283-section">
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">1</span>
+      <span class="form-8283-line-text">Name and address of the donee organization</span>
+      <input type="text" class="form-8283-line-input text-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">2</span>
+      <span class="form-8283-line-text">Description of donated property</span>
+      <input type="text" class="form-8283-line-input text-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">3a</span>
+      <span class="form-8283-line-text">Date of the contribution</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'3a'|field_id }}" value="{{ fields|get_item:'3a'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">3b</span>
+      <span class="form-8283-line-text">Date acquired by donor (mo., yr.)</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'3b'|field_id }}" value="{{ fields|get_item:'3b'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">3c</span>
+      <span class="form-8283-line-text">How acquired by donor</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'3c'|field_id }}" value="{{ fields|get_item:'3c'|field_value|default:'' }}" style="width: 150px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">4a</span>
+      <span class="form-8283-line-text">Donor's cost or adjusted basis</span>
+      <span class="form-8283-line-box">4a</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'4a'|field_id }}" value="{{ fields|get_item:'4a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">4b</span>
+      <span class="form-8283-line-text">Fair market value (see instructions)</span>
+      <span class="form-8283-line-box">4b</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'4b'|field_id }}" value="{{ fields|get_item:'4b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">4c</span>
+      <span class="form-8283-line-text">Method used to determine the fair market value</span>
+      <input type="text" class="form-8283-line-input text-input" name="{{ fields|get_item:'4c'|field_id }}" value="{{ fields|get_item:'4c'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line form-8283-checkbox-line">
+      <span class="form-8283-line-num">5a</span>
+      <span class="form-8283-line-text">If donated property is a vehicle, check this box if donee sold vehicle to unrelated party</span>
+      <input type="checkbox" class="form-8283-checkbox" name="{{ fields|get_item:'5a'|field_id }}" {% if fields|get_item:'5a'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">5a(i)</span>
+      <span class="form-8283-line-text">Proceeds from sale (if 5a checked)</span>
+      <span class="form-8283-line-box">5a(i)</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'5ai'|field_id }}" value="{{ fields|get_item:'5ai'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line form-8283-checkbox-line">
+      <span class="form-8283-line-num">5b</span>
+      <span class="form-8283-line-text">Check if donee will make significant intervening use or material improvement</span>
+      <input type="checkbox" class="form-8283-checkbox" name="{{ fields|get_item:'5b'|field_id }}" {% if fields|get_item:'5b'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="form-8283-form-line form-8283-checkbox-line">
+      <span class="form-8283-line-num">5c</span>
+      <span class="form-8283-line-text">Check if donee provided Form 1098-C</span>
+      <input type="checkbox" class="form-8283-checkbox" name="{{ fields|get_item:'5c'|field_id }}" {% if fields|get_item:'5c'|field_value %}checked{% endif %}>
+    </div>
+  </div>
+
+  <div class="form-8283-part-header">
+    Part II - Partial Interests and Restricted Use Property
+  </div>
+
+  <div class="form-8283-section">
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">6</span>
+      <span class="form-8283-line-text">Enter letter from Part I identifying property if you contributed less than an entire interest</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" style="width: 80px;">
+    </div>
+
+    <div class="form-8283-form-line form-8283-checkbox-line">
+      <span class="form-8283-line-num">7</span>
+      <span class="form-8283-line-text">Did you contribute clothing or household items?</span>
+      <input type="checkbox" class="form-8283-checkbox" name="{{ fields|get_item:'7'|field_id }}" {% if fields|get_item:'7'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="form-8283-form-line form-8283-checkbox-line">
+      <span class="form-8283-line-num">8</span>
+      <span class="form-8283-line-text">If Yes to line 7, is FMV of any single item of clothing or any household item more than $500?</span>
+      <input type="checkbox" class="form-8283-checkbox" name="{{ fields|get_item:'8'|field_id }}" {% if fields|get_item:'8'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="form-8283-form-line form-8283-result-line">
+      <span class="form-8283-line-num">9</span>
+      <span class="form-8283-line-text"><strong>Total amount claimed as a deduction for all property listed in Section A, Part I</strong></span>
+      <span class="form-8283-line-box">9</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+  </div>
+
+  <div class="form-8283-section-header">
+    Section B. Donated Property Over $5,000 (Except Publicly Traded Securities)
+  </div>
+
+  <div class="form-8283-part-header">
+    Part I - Information on Donated Property
+  </div>
+
+  <div class="form-8283-section">
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">10</span>
+      <span class="form-8283-line-text">Name and address of the donee organization</span>
+      <input type="text" class="form-8283-line-input text-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">11</span>
+      <span class="form-8283-line-text">Description of donated property (if tangible personal property, its physical condition)</span>
+      <input type="text" class="form-8283-line-input text-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">12a</span>
+      <span class="form-8283-line-text">Date of the contribution</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'12a'|field_id }}" value="{{ fields|get_item:'12a'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">12b</span>
+      <span class="form-8283-line-text">Date acquired by donor (mo., yr.)</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'12b'|field_id }}" value="{{ fields|get_item:'12b'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">12c</span>
+      <span class="form-8283-line-text">How acquired by donor</span>
+      <input type="text" class="form-8283-line-input" name="{{ fields|get_item:'12c'|field_id }}" value="{{ fields|get_item:'12c'|field_value|default:'' }}" style="width: 150px;">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">12d</span>
+      <span class="form-8283-line-text">Donor's cost or adjusted basis</span>
+      <span class="form-8283-line-box">12d</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'12d'|field_id }}" value="{{ fields|get_item:'12d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8283-form-line">
+      <span class="form-8283-line-num">12e</span>
+      <span class="form-8283-line-text">Appraised fair market value</span>
+      <span class="form-8283-line-box">12e</span>
+      <input type="text" class="form-8283-line-input irs-line-input" name="{{ fields|get_item:'12e'|field_id }}" value="{{ fields|get_item:'12e'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-8283-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 62299J
+    </div>
+    <div>
+      <strong>Form 8283 {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ form.name }}{% endblock title %}
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+{% block content %}
+  <div class="container">
+
+    {% include 'forms/includes/header.html' with name=form.name description="Parents Election To Report Child’s Interest and Dividends" help_text="<b>Attach to parents’ Form 1040, 1040-SR, or 1040-NR. Go to www.irs.gov/Form8814 for the latest information</b>" year=year %}
+
+    <div class="row" style="border-bottom: 1px solid black">
+      <div class="col-md-12">
+        <h5></h5>
+      </div>
+    </div>
+
+    {% include "forms/includes/full_width_form.html" %}
+
+    {% include 'forms/includes/footer.html' with name=form.name year=year %}
+  </div>
+
+{% endblock content %}

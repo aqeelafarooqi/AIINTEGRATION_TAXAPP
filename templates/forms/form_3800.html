@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 3800 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_3800.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-3800-container">
+  <div class="form-3800-top-header">
+    <div class="form-3800-top-left">
+      <div class="form-3800-form-label">Form 3800</div>
+      <div class="form-3800-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-3800-top-center">
+      <div class="form-3800-main-title">General Business Credit</div>
+      <div class="form-3800-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+      <div class="form-3800-attach-note">▶ Go to <a href="https://www.irs.gov/Form3800" target="_blank">www.irs.gov/Form3800</a> for instructions and the latest information.</div>
+    </div>
+    <div class="form-3800-top-right">
+      <div class="form-3800-omb-line">OMB No. 1545-0895</div>
+      <div class="form-3800-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-3800-name-row">
+    <div class="form-3800-name-box" style="flex: 3;">
+      <div class="form-3800-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-3800-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-3800-name-box">
+      <div class="form-3800-name-label">Identifying number</div>
+      <input type="text" class="form-3800-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-3800-section" style="background-color: #f9f9f9;">
+    <div class="form-3800-checkbox-line">
+      <span class="form-3800-line-num">A</span>
+      <input type="checkbox" class="form-3800-checkbox" name="{{ fields|get_item:'A'|field_id }}" {% if fields|get_item:'A'|field_value %}checked{% endif %}>
+      <span class="form-3800-checkbox-text">Are you both an "applicable corporation" within the meaning of IRC 59(k)(1) for the CAMT and an "applicable taxpayer" within the meaning of IRC 59A(e) for the BEAT?</span>
+    </div>
+    <div class="form-3800-checkbox-line">
+      <span class="form-3800-line-num">B(i)</span>
+      <input type="checkbox" class="form-3800-checkbox" name="{{ fields|get_item:'B(i)'|field_id }}" {% if fields|get_item:'B(i)'|field_value %}checked{% endif %}>
+      <span class="form-3800-checkbox-text">Was an entry made in the specified part and column?</span>
+    </div>
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">B(ii)</span>
+      <span class="form-3800-line-text">The number of Transfer Election Statements attached to your return</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'B(ii)'|field_id }}" value="{{ fields|get_item:'B(ii)'|field_value|default:'' }}" style="width: 80px;">
+    </div>
+  </div>
+
+  <div class="form-3800-part-header">
+    Part I — Current Year Credit for Credits Not Allowed Against Tentative Minimum Tax (TMT)
+  </div>
+
+  <div class="form-3800-section">
+    <div class="form-3800-section-note">
+      See instructions for this Part I.
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">1</span>
+      <span class="form-3800-line-text">General business credit from non-passive activities (see instructions)</span>
+      <span class="form-3800-line-box">1</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 1'|field_id }}" value="{{ fields|get_item:'Part I, 1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">2</span>
+      <span class="form-3800-line-text">Passive activity credits included on line 1</span>
+      <span class="form-3800-line-box">2</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 2'|field_id }}" value="{{ fields|get_item:'Part I, 2'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">3</span>
+      <span class="form-3800-line-text">Passive activity credits allowed for the current year (see instructions)</span>
+      <span class="form-3800-line-box">3</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 3'|field_id }}" value="{{ fields|get_item:'Part I, 3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">4</span>
+      <span class="form-3800-line-text">Carryforward of general business credit to this tax year (see instructions)</span>
+      <span class="form-3800-line-box">4</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 4'|field_id }}" value="{{ fields|get_item:'Part I, 4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">5</span>
+      <span class="form-3800-line-text">Carryback of general business credit from a later tax year (see instructions)</span>
+      <span class="form-3800-line-box">5</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 5'|field_id }}" value="{{ fields|get_item:'Part I, 5'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line form-3800-total-line">
+      <span class="form-3800-line-num">6</span>
+      <span class="form-3800-line-text"><strong>Current year credits not allowed against TMT.</strong> Add lines 1, 2, 3, 4, and 5</span>
+      <span class="form-3800-line-box">6</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part I, 6'|field_id }}" value="{{ fields|get_item:'Part I, 6'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-3800-part-header">
+    Part II — Allowable Credit
+  </div>
+
+  <div class="form-3800-section">
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">7</span>
+      <span class="form-3800-line-text">Regular tax before credits (see instructions)</span>
+      <span class="form-3800-line-box">7</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 7'|field_id }}" value="{{ fields|get_item:'Part II, 7'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">8</span>
+      <span class="form-3800-line-text">Alternative minimum tax (Form 6251 or Form 1041, Schedule I)</span>
+      <span class="form-3800-line-box">8</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 8'|field_id }}" value="{{ fields|get_item:'Part II, 8'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">9</span>
+      <span class="form-3800-line-text">Add lines 7 and 8</span>
+      <span class="form-3800-line-box">9</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 9'|field_id }}" value="{{ fields|get_item:'Part II, 9'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">10a</span>
+      <span class="form-3800-line-text">Foreign tax credit</span>
+      <span class="form-3800-line-box">10a</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 10a'|field_id }}" value="{{ fields|get_item:'Part II, 10a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">10b</span>
+      <span class="form-3800-line-text">Certain allowable credits (see instructions)</span>
+      <span class="form-3800-line-box">10b</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 10b'|field_id }}" value="{{ fields|get_item:'Part II, 10b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">10c</span>
+      <span class="form-3800-line-text">Add lines 10a and 10b</span>
+      <span class="form-3800-line-box">10c</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 10c'|field_id }}" value="{{ fields|get_item:'Part II, 10c'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">11</span>
+      <span class="form-3800-line-text"><strong>Net income tax.</strong> Subtract line 10c from line 9. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">11</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 11'|field_id }}" value="{{ fields|get_item:'Part II, 11'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">12</span>
+      <span class="form-3800-line-text"><strong>Net regular tax.</strong> Subtract line 10c from line 7. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">12</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 12'|field_id }}" value="{{ fields|get_item:'Part II, 12'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">13</span>
+      <span class="form-3800-line-text">Enter 25% (.25) of the excess, if any, of line 12 over $25,000 (see instructions)</span>
+      <span class="form-3800-line-box">13</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 13'|field_id }}" value="{{ fields|get_item:'Part II, 13'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">14</span>
+      <span class="form-3800-line-text">Tentative minimum tax (Form 6251, line 9, or Form 1041, Schedule I, line 54)</span>
+      <span class="form-3800-line-box">14</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 14'|field_id }}" value="{{ fields|get_item:'Part II, 14'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">15</span>
+      <span class="form-3800-line-text">Enter the greater of line 13 or line 14</span>
+      <span class="form-3800-line-box">15</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 15'|field_id }}" value="{{ fields|get_item:'Part II, 15'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">16</span>
+      <span class="form-3800-line-text">Subtract line 15 from line 11. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">16</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 16'|field_id }}" value="{{ fields|get_item:'Part II, 16'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">17</span>
+      <span class="form-3800-line-text">Enter the smaller of Part I, line 6, or the total adjusted amount</span>
+      <span class="form-3800-line-box">17</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 17'|field_id }}" value="{{ fields|get_item:'Part II, 17'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">18</span>
+      <span class="form-3800-line-text">Multiply line 14 by 75% (.75)</span>
+      <span class="form-3800-line-box">18</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 18'|field_id }}" value="{{ fields|get_item:'Part II, 18'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">19</span>
+      <span class="form-3800-line-text">Enter the greater of line 13 or line 18</span>
+      <span class="form-3800-line-box">19</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 19'|field_id }}" value="{{ fields|get_item:'Part II, 19'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">20</span>
+      <span class="form-3800-line-text">Subtract line 19 from line 11. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">20</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 20'|field_id }}" value="{{ fields|get_item:'Part II, 20'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">21</span>
+      <span class="form-3800-line-text">Subtract line 17 from line 20. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">21</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 21'|field_id }}" value="{{ fields|get_item:'Part II, 21'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">22</span>
+      <span class="form-3800-line-text">Total empowerment zone and renewal community general business credit (see instructions)</span>
+      <span class="form-3800-line-box">22</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 22'|field_id }}" value="{{ fields|get_item:'Part II, 22'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">23</span>
+      <span class="form-3800-line-text">Passive activity credits from all Parts III and IV on line 22</span>
+      <span class="form-3800-line-box">23</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 23'|field_id }}" value="{{ fields|get_item:'Part II, 23'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">24</span>
+      <span class="form-3800-line-text">Passive activity credit allowed for the current year</span>
+      <span class="form-3800-line-box">24</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 24'|field_id }}" value="{{ fields|get_item:'Part II, 24'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">25</span>
+      <span class="form-3800-line-text">Total passive activity credit for current tax year</span>
+      <span class="form-3800-line-box">25</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 25'|field_id }}" value="{{ fields|get_item:'Part II, 25'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">26</span>
+      <span class="form-3800-line-text">Empowerment zone and renewal community employment credit</span>
+      <span class="form-3800-line-box">26</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 26'|field_id }}" value="{{ fields|get_item:'Part II, 26'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">27</span>
+      <span class="form-3800-line-text">Subtract line 13 from line 11</span>
+      <span class="form-3800-line-box">27</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 27'|field_id }}" value="{{ fields|get_item:'Part II, 27'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">28</span>
+      <span class="form-3800-line-text">Add lines 17 and 26</span>
+      <span class="form-3800-line-box">28</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 28'|field_id }}" value="{{ fields|get_item:'Part II, 28'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">29</span>
+      <span class="form-3800-line-text">Subtract line 28 from line 27. If zero or less, enter -0-</span>
+      <span class="form-3800-line-box">29</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 29'|field_id }}" value="{{ fields|get_item:'Part II, 29'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">30</span>
+      <span class="form-3800-line-text">Allowed general business credit from nonpassive activities</span>
+      <span class="form-3800-line-box">30</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 30'|field_id }}" value="{{ fields|get_item:'Part II, 30'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">32</span>
+      <span class="form-3800-line-text">General business passive activity credit</span>
+      <span class="form-3800-line-box">32</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 32'|field_id }}" value="{{ fields|get_item:'Part II, 32'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">33</span>
+      <span class="form-3800-line-text">Other specified allowable general business credit</span>
+      <span class="form-3800-line-box">33</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 33'|field_id }}" value="{{ fields|get_item:'Part II, 33'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">34</span>
+      <span class="form-3800-line-text">Allowed carryforward credit from eligible small business</span>
+      <span class="form-3800-line-box">34</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 34'|field_id }}" value="{{ fields|get_item:'Part II, 34'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">35</span>
+      <span class="form-3800-line-text">Allowed general business carryback credit amount</span>
+      <span class="form-3800-line-box">35</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 35'|field_id }}" value="{{ fields|get_item:'Part II, 35'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">36</span>
+      <span class="form-3800-line-text">Total allowed general and eligible small business credit</span>
+      <span class="form-3800-line-box">36</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 36'|field_id }}" value="{{ fields|get_item:'Part II, 36'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line">
+      <span class="form-3800-line-num">37</span>
+      <span class="form-3800-line-text">Enter the smaller of line 16 or line 36</span>
+      <span class="form-3800-line-box">37</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 37'|field_id }}" value="{{ fields|get_item:'Part II, 37'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-3800-form-line form-3800-total-line">
+      <span class="form-3800-line-num">38</span>
+      <span class="form-3800-line-text"><strong>Current year credit allowed.</strong> Add lines 30, 32, 34, 35, and 37. Report on the appropriate line of your return (see instructions)</span>
+      <span class="form-3800-line-box">38</span>
+      <input type="text" class="form-3800-line-input irs-line-input" name="{{ fields|get_item:'Part II, 38'|field_id }}" value="{{ fields|get_item:'Part II, 38'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-3800-page-break"></div>
+
+  <div class="form-3800-part-header">
+    Part III — General Business Credits or Eligible Small Business Credits (See instructions)
+  </div>
+
+  <div class="form-3800-section">
+    <div class="form-3800-section-note">
+      Complete a separate Part III for each type of credit listed in instructions. See instructions for how to complete columns.
+    </div>
+
+    <table class="form-3800-table">
+      <thead>
+        <tr class="form-3800-table-header-row">
+          <th rowspan="2" style="width: 30px;">Line</th>
+          <th rowspan="2" style="width: 180px;">Description</th>
+          <th>(a)</th>
+          <th>(b)</th>
+          <th>(c)</th>
+          <th>(d)</th>
+          <th>(e)</th>
+          <th>(f)</th>
+          <th>(g)</th>
+          <th>(h)</th>
+          <th>(i)</th>
+          <th>(j)</th>
+        </tr>
+        <tr class="form-3800-table-header-row">
+          <th>Count</th>
+          <th>Reg. No.</th>
+          <th>EIN</th>
+          <th>Passive before limit</th>
+          <th>Non-passive</th>
+          <th>Transfer election</th>
+          <th>Total gross</th>
+          <th>Gross EPE</th>
+          <th>Applied against tax</th>
+          <th>Net EPE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="line-num-cell">1f</td>
+          <td class="desc-cell">Renewable Electricity, Refined Coal, Indian Coal (Form 8835)</td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column a'|field_id }}" value="{{ fields|get_item:'Part III, column a'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column b'|field_id }}" value="{{ fields|get_item:'Part III, column b'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column c'|field_id }}" value="{{ fields|get_item:'Part III, column c'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column d'|field_id }}" value="{{ fields|get_item:'Part III, column d'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column e'|field_id }}" value="{{ fields|get_item:'Part III, column e'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column f'|field_id }}" value="{{ fields|get_item:'Part III, column f'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column g'|field_id }}" value="{{ fields|get_item:'Part III, column g'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column h'|field_id }}" value="{{ fields|get_item:'Part III, column h'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column i'|field_id }}" value="{{ fields|get_item:'Part III, column i'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column j'|field_id }}" value="{{ fields|get_item:'Part III, column j'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td class="line-num-cell">1zz</td>
+          <td class="desc-cell">Total Current Year Other General Business Credits</td>
+          <td colspan="10">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part III, 1zz column a, c, d, e, g, i'|field_id }}" value="{{ fields|get_item:'Part III, 1zz column a, c, d, e, g, i'|field_value|default:'' }}">
+          </td>
+        </tr>
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+          <td class="line-num-cell">2</td>
+          <td class="desc-cell">Add lines 1a through 1zz</td>
+          <td colspan="10">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part III, 2 column d, e, f, g, h, i, j'|field_id }}" value="{{ fields|get_item:'Part III, 2 column d, e, f, g, h, i, j'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+          <td class="line-num-cell">5</td>
+          <td class="desc-cell">Add lines 4a through 4z</td>
+          <td colspan="10">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part III, 5 column d, e, f, g, h, i, j'|field_id }}" value="{{ fields|get_item:'Part III, 5 column d, e, f, g, h, i, j'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+        <tr style="background-color: #e6e6e6; font-weight: bold;">
+          <td class="line-num-cell">6</td>
+          <td class="desc-cell">Add lines 2, 3 and 5</td>
+          <td colspan="10">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part III, 6 column d, e, f, g, h, i, j'|field_id }}" value="{{ fields|get_item:'Part III, 6 column d, e, f, g, h, i, j'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-3800-page-break"></div>
+
+  <div class="form-3800-part-header">
+    Part IV — Carryforwards of General Business Credits to This Tax Year
+  </div>
+
+  <div class="form-3800-section">
+    <table class="form-3800-table">
+      <thead>
+        <tr class="form-3800-table-header-row">
+          <th style="width: 30px;">Line</th>
+          <th style="width: 180px;">Description</th>
+          <th>(d) Before PAL</th>
+          <th>(e) After PAL</th>
+          <th>(f) Not subject to PAL</th>
+          <th>(g) Applied against tax</th>
+          <th>(h) Recaptured</th>
+          <th>(i) Carryforward</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="line-num-cell">4</td>
+          <td class="desc-cell">Carryforwards</td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column d'|field_id }}" value="{{ fields|get_item:'Part IV column d'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column e'|field_id }}" value="{{ fields|get_item:'Part IV column e'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column f'|field_id }}" value="{{ fields|get_item:'Part IV column f'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column g'|field_id }}" value="{{ fields|get_item:'Part IV column g'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column h'|field_id }}" value="{{ fields|get_item:'Part IV column h'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part IV column i'|field_id }}" value="{{ fields|get_item:'Part IV column i'|field_value|default:'' }}"></td>
+        </tr>
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+          <td class="line-num-cell">5</td>
+          <td class="desc-cell">Add lines 4a through 4z</td>
+          <td colspan="6">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part IV 5 column d, e, f, g, h, i'|field_id }}" value="{{ fields|get_item:'Part IV 5 column d, e, f, g, h, i'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+          <td class="line-num-cell">6</td>
+          <td class="desc-cell">Add lines 1a through 2zz</td>
+          <td colspan="6">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part IV 6 column d, e, f, g, h, i'|field_id }}" value="{{ fields|get_item:'Part IV 6 column d, e, f, g, h, i'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+        <tr style="background-color: #e6e6e6; font-weight: bold;">
+          <td class="line-num-cell">7</td>
+          <td class="desc-cell">Add lines 3, 5, and 6</td>
+          <td colspan="6">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part IV 7 column d, e, f, g, h, i'|field_id }}" value="{{ fields|get_item:'Part IV 7 column d, e, f, g, h, i'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-3800-page-break"></div>
+
+  <div class="form-3800-part-header">
+    Part V — Credits from Partnerships, S Corporations, Estates, and Trusts
+  </div>
+
+  <div class="form-3800-section">
+    <div class="form-3800-section-note">
+      Complete this part for credits received from pass-through entities. See instructions for column descriptions.
+    </div>
+
+    <table class="form-3800-table">
+      <thead>
+        <tr class="form-3800-table-header-row">
+          <th style="width: 30px;">Line</th>
+          <th style="width: 140px;">Description</th>
+          <th>(b) Reg. No.</th>
+          <th>(c)(1) EIN</th>
+          <th>(c)(2) Transfer EIN</th>
+          <th>(d)(1) Other credits</th>
+          <th>(d)(2) Sold</th>
+          <th>(d)(3) Purchased</th>
+          <th>(d)(4) After limit</th>
+          <th>(e) Non-transfer</th>
+          <th>(f)(1) Sold</th>
+          <th>(f)(2) Purchased</th>
+          <th>(g) Total gross</th>
+          <th>(i)(1) Applied</th>
+          <th>(i)(2) EPE applied</th>
+          <th>(k) Carryforward</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="line-num-cell">4</td>
+          <td class="desc-cell">Pass-through credits</td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column b'|field_id }}" value="{{ fields|get_item:'Part V, column b'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column c(1)'|field_id }}" value="{{ fields|get_item:'Part V, column c(1)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column c(2)'|field_id }}" value="{{ fields|get_item:'Part V, column c(2)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column d(1)'|field_id }}" value="{{ fields|get_item:'Part V, column d(1)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column d(2)'|field_id }}" value="{{ fields|get_item:'Part V, column d(2)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column d(3)'|field_id }}" value="{{ fields|get_item:'Part V, column d(3)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column d(4)'|field_id }}" value="{{ fields|get_item:'Part V, column d(4)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column e'|field_id }}" value="{{ fields|get_item:'Part V, column e'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column f(1)'|field_id }}" value="{{ fields|get_item:'Part V, column f(1)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column f(2)'|field_id }}" value="{{ fields|get_item:'Part V, column f(2)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column g'|field_id }}" value="{{ fields|get_item:'Part V, column g'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column i(1)'|field_id }}" value="{{ fields|get_item:'Part V, column i(1)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column i(2)'|field_id }}" value="{{ fields|get_item:'Part V, column i(2)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part V, column k'|field_id }}" value="{{ fields|get_item:'Part V, column k'|field_value|default:'' }}"></td>
+        </tr>
+        <tr style="background-color: #f5f5f5; font-weight: bold;">
+          <td class="line-num-cell">5</td>
+          <td class="desc-cell">Add lines 4a-4z</td>
+          <td colspan="14">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part V, 5 column d(1), d(2), d(3), d(4), e, f(1), f(2), g, h(1), h(2), i(1), i(2), j, k'|field_id }}" value="{{ fields|get_item:'Part V, 5 column d(1), d(2), d(3), d(4), e, f(1), f(2), g, h(1), h(2), i(1), i(2), j, k'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+        <tr style="background-color: #e6e6e6; font-weight: bold;">
+          <td class="line-num-cell">6</td>
+          <td class="desc-cell">Add lines 2, 3, and 5</td>
+          <td colspan="14">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part V, 6 column d(1), d(2), d(3), d(4), e, f(1), f(2), g, h(1), h(2), i(1), i(2), j, k'|field_id }}" value="{{ fields|get_item:'Part V, 6 column d(1), d(2), d(3), d(4), e, f(1), f(2), g, h(1), h(2), i(1), i(2), j, k'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-3800-page-break"></div>
+
+  <div class="form-3800-part-header">
+    Part VI — General Business Credit Carryforwards from Prior Years
+  </div>
+
+  <div class="form-3800-section">
+    <div class="form-3800-section-note">
+      Enter carryforwards from prior tax years. Complete a separate line for each year.
+    </div>
+
+    <table class="form-3800-table">
+      <thead>
+        <tr class="form-3800-table-header-row">
+          <th style="width: 30px;">Line</th>
+          <th style="width: 180px;">Description</th>
+          <th>(b) Year</th>
+          <th>(c) EIN</th>
+          <th>(d) Before PAL</th>
+          <th>(e) After PAL</th>
+          <th>(f) Not subject to PAL</th>
+          <th>(g) Applied against tax</th>
+          <th>(h) Recaptured</th>
+          <th>(i) Carryforward</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="line-num-cell">4</td>
+          <td class="desc-cell">Prior year carryforwards</td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column b'|field_id }}" value="{{ fields|get_item:'Part VI column b'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI, column c'|field_id }}" value="{{ fields|get_item:'Part VI, column c'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part III, column d'|field_id }}" value="{{ fields|get_item:'Part III, column d'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column e'|field_id }}" value="{{ fields|get_item:'Part VI column e'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column f'|field_id }}" value="{{ fields|get_item:'Part VI column f'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column g'|field_id }}" value="{{ fields|get_item:'Part VI column g'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column h'|field_id }}" value="{{ fields|get_item:'Part VI column h'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'Part VI column i'|field_id }}" value="{{ fields|get_item:'Part VI column i'|field_value|default:'' }}"></td>
+        </tr>
+        <tr style="background-color: #e6e6e6; font-weight: bold;">
+          <td class="line-num-cell">7</td>
+          <td class="desc-cell">Add lines 3, 5, and 6</td>
+          <td colspan="8">
+            <input type="text" style="width: 100%;" name="{{ fields|get_item:'Part VI 7 column d, e, f, g, h, i'|field_id }}" value="{{ fields|get_item:'Part VI 7 column d, e, f, g, h, i'|field_value|default:'' }}" readonly>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="form-3800-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 12392F
+    </div>
+    <div>
+      <strong>Form 3800 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

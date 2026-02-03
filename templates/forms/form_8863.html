@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8863 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8863.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8863-container">
+  <div class="form-8863-top-header">
+    <div class="form-8863-top-left">
+      <div class="form-8863-form-label">Form 8863</div>
+      <div class="form-8863-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8863-top-center">
+      <div class="form-8863-main-title">Education Credits</div>
+      <div class="form-8863-subtitle">(American Opportunity and Lifetime Learning Credits)</div>
+      <div class="form-8863-attach-note"><strong>▶ Attach to Form 1040 or 1040-SR.</strong></div>
+      <div class="form-8863-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form8863" target="_blank">www.irs.gov/Form8863</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-8863-top-right">
+      <div class="form-8863-omb-line">OMB No. 1545-0074</div>
+      <div class="form-8863-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-8863-name-row">
+    <div class="form-8863-name-box" style="flex: 3;">
+      <div class="form-8863-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8863-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8863-ssn-box">
+      <div class="form-8863-name-label">Your social security number</div>
+      <input type="text" class="form-8863-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8863-part-header">
+    Part I - Refundable American Opportunity Credit
+  </div>
+
+  <div class="form-8863-section">
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">1</span>
+      <span class="form-8863-line-text">After completing Part III for each student, enter the total of all amounts from all Parts III, line 30</span>
+      <span class="form-8863-line-box">1</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">2</span>
+      <span class="form-8863-line-text">Enter: $180,000 if married filing jointly; $90,000 if single, head of household, or qualifying surviving spouse</span>
+      <span class="form-8863-line-box">2</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">3</span>
+      <span class="form-8863-line-text">Enter the amount from Form 1040 or 1040-SR, line 11. But if you're filing Form 2555 or 4563, or you're excluding income from Puerto Rico, see Pub. 970 for the amount to enter instead</span>
+      <span class="form-8863-line-box">3</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}" {% field_readonly fields|get_item:'3' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">4</span>
+      <span class="form-8863-line-text">Subtract line 3 from line 2. If zero or less, <strong>stop;</strong> you can't take any education credit</span>
+      <span class="form-8863-line-box">4</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}" {% field_readonly fields|get_item:'4' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">5</span>
+      <span class="form-8863-line-text">Enter: $20,000 if married filing jointly; $10,000 if single, head of household, or qualifying surviving spouse</span>
+      <span class="form-8863-line-box">5</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">6</span>
+      <span class="form-8863-line-text">If line 4 is: • Equal to or more than line 5, enter 1.000 on line 6 • Less than line 5, divide line 4 by line 5. Enter the result as a decimal (rounded to at least three places)</span>
+      <span class="form-8863-line-box">6</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">7</span>
+      <span class="form-8863-line-text">Multiply line 1 by line 6</span>
+      <span class="form-8863-line-box">7</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num"></span>
+      <span class="form-8863-line-text">
+        <strong>Caution:</strong> If you were under age 24 at the end of the year and meet the conditions described in the instructions, you can't take the refundable American opportunity credit; skip line 8, enter the amount from line 7 on line 9, and check this box ▶
+      </span>
+      <input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'7-checkbox'|field_id }}" {% if fields|get_item:'7-checkbox'|field_value %}checked{% endif %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">8</span>
+      <span class="form-8863-line-text"><strong>Refundable American opportunity credit.</strong> Multiply line 7 by 40% (0.40). Enter the amount here and on Form 1040 or 1040-SR, line 29. Then go to line 9 below</span>
+      <span class="form-8863-line-box">8</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+
+    <div class="form-8863-form-line form-8863-total-line">
+      <span class="form-8863-line-num">9</span>
+      <span class="form-8863-line-text"><strong>Subtract line 8 from line 7.</strong> Enter here and on line 2 of the Credit Limit Worksheet (see instructions)</span>
+      <span class="form-8863-line-box">9</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}" {% field_readonly fields|get_item:'9' %}>
+    </div>
+  </div>
+
+  <div class="form-8863-part-header">
+    Part II - Nonrefundable Education Credits
+  </div>
+
+  <div class="form-8863-section">
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">10</span>
+      <span class="form-8863-line-text">After completing Part III for each student, enter the total of all amounts from all Parts III, line 31. If zero, skip lines 11 through 17, enter -0- on line 18, and go to line 19</span>
+      <span class="form-8863-line-box">10</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">11</span>
+      <span class="form-8863-line-text">Enter the smaller of line 10 or $10,000</span>
+      <span class="form-8863-line-box">11</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">12</span>
+      <span class="form-8863-line-text">Multiply line 11 by 20% (0.20)</span>
+      <span class="form-8863-line-box">12</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}" {% field_readonly fields|get_item:'12' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">13</span>
+      <span class="form-8863-line-text">Enter: $180,000 if married filing jointly; $90,000 if single, head of household, or qualifying surviving spouse</span>
+      <span class="form-8863-line-box">13</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">14</span>
+      <span class="form-8863-line-text">Enter the amount from Form 1040 or 1040-SR, line 11. But if you're filing Form 2555 or 4563, or you're excluding income from Puerto Rico, see Pub. 970 for the amount to enter instead</span>
+      <span class="form-8863-line-box">14</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}" {% field_readonly fields|get_item:'14' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">15</span>
+      <span class="form-8863-line-text">Subtract line 14 from line 13. If zero or less, skip lines 16 and 17, enter -0- on line 18, and go to line 19</span>
+      <span class="form-8863-line-box">15</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">16</span>
+      <span class="form-8863-line-text">Enter: $20,000 if married filing jointly; $10,000 if single, head of household, or qualifying surviving spouse</span>
+      <span class="form-8863-line-box">16</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">17</span>
+      <span class="form-8863-line-text">If line 15 is: • Equal to or more than line 16, enter 1.000 on line 17 and go to line 18 • Less than line 16, divide line 15 by line 16. Enter the result as a decimal (rounded to at least three places)</span>
+      <span class="form-8863-line-box">17</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}" {% field_readonly fields|get_item:'17' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">18</span>
+      <span class="form-8863-line-text">Multiply line 12 by line 17. Enter here and on line 1 of the Credit Limit Worksheet (see instructions)</span>
+      <span class="form-8863-line-box">18</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}" {% field_readonly fields|get_item:'18' %}>
+    </div>
+
+    <div class="form-8863-form-line form-8863-total-line">
+      <span class="form-8863-line-num">19</span>
+      <span class="form-8863-line-text"><strong>Nonrefundable education credits.</strong> Enter the amount from line 7 of the Credit Limit Worksheet (see instructions) here and on Schedule 3 (Form 1040), line 3</span>
+      <span class="form-8863-line-box">19</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}" {% field_readonly fields|get_item:'19' %}>
+    </div>
+  </div>
+
+  <div class="form-8863-part-header">
+    Part III - Student and Educational Institution Information
+  </div>
+
+  <div class="form-8863-note">
+    See instructions for Part III. If you need more space, use additional copies of page 2.
+  </div>
+
+  <div class="form-8863-section">
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">20</span>
+      <span class="form-8863-line-text">Student name (as shown on page 1 of your tax return)</span>
+      <input type="text" class="form-8863-text-input form-8863-text-input-wide" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">21</span>
+      <span class="form-8863-line-text">Student social security number (as shown on page 1 of your tax return)</span>
+      <input type="text" class="form-8863-text-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-subpart-header">
+      22 Educational Institution Information
+    </div>
+
+    <div class="form-8863-institution-box">
+      <div class="form-8863-institution-title">(a) First Educational Institution</div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(1)</span>
+        <span class="form-8863-line-text">Name of institution</span>
+        <input type="text" class="form-8863-text-input form-8863-text-input-wide" name="{{ fields|get_item:'22a-1'|field_id }}" value="{{ fields|get_item:'22a-1'|field_value|default:'' }}">
+      </div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(2)</span>
+        <span class="form-8863-line-text">Address (number and street, city, state, and ZIP code)</span>
+        <input type="text" class="form-8863-text-input form-8863-text-input-wide" name="{{ fields|get_item:'22a-2'|field_id }}" value="{{ fields|get_item:'22a-2'|field_value|default:'' }}">
+      </div>
+      <div class="form-8863-question-row">
+        <span class="form-8863-question-text">(3) Did the student receive Form 1098-T from this institution for {{ year }}?</span>
+        <div class="form-8863-yes-no">
+          <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'22a-3'|field_id }}" {% if fields|get_item:'22a-3'|field_value %}checked{% endif %}> Yes</label>
+        </div>
+      </div>
+      <div class="form-8863-question-row">
+        <span class="form-8863-question-text">(4) Did the student receive Form 1098-T from this institution for a prior year with box 7 checked?</span>
+        <div class="form-8863-yes-no">
+          <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'22a-4'|field_id }}" {% if fields|get_item:'22a-4'|field_value %}checked{% endif %}> Yes</label>
+        </div>
+      </div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(5)</span>
+        <span class="form-8863-line-text">Institution's EIN</span>
+        <input type="text" class="form-8863-text-input" name="{{ fields|get_item:'22a-5'|field_id }}" value="{{ fields|get_item:'22a-5'|field_value|default:'' }}">
+      </div>
+    </div>
+
+    <div class="form-8863-institution-box">
+      <div class="form-8863-institution-title">(b) Second Educational Institution (if any)</div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(1)</span>
+        <span class="form-8863-line-text">Name of institution</span>
+        <input type="text" class="form-8863-text-input form-8863-text-input-wide" name="{{ fields|get_item:'22b-1'|field_id }}" value="{{ fields|get_item:'22b-1'|field_value|default:'' }}">
+      </div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(2)</span>
+        <span class="form-8863-line-text">Address (number and street, city, state, and ZIP code)</span>
+        <input type="text" class="form-8863-text-input form-8863-text-input-wide" name="{{ fields|get_item:'22b-2'|field_id }}" value="{{ fields|get_item:'22b-2'|field_value|default:'' }}">
+      </div>
+      <div class="form-8863-question-row">
+        <span class="form-8863-question-text">(3) Did the student receive Form 1098-T from this institution for {{ year }}?</span>
+        <div class="form-8863-yes-no">
+          <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'22b-3'|field_id }}" {% if fields|get_item:'22b-3'|field_value %}checked{% endif %}> Yes</label>
+        </div>
+      </div>
+      <div class="form-8863-question-row">
+        <span class="form-8863-question-text">(4) Did the student receive Form 1098-T from this institution for a prior year with box 7 checked?</span>
+        <div class="form-8863-yes-no">
+          <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'22b-4'|field_id }}" {% if fields|get_item:'22b-4'|field_value %}checked{% endif %}> Yes</label>
+        </div>
+      </div>
+      <div class="form-8863-form-line">
+        <span class="form-8863-line-num">(5)</span>
+        <span class="form-8863-line-text">Institution's EIN</span>
+        <input type="text" class="form-8863-text-input" name="{{ fields|get_item:'22b-5'|field_id }}" value="{{ fields|get_item:'22b-5'|field_value|default:'' }}">
+      </div>
+    </div>
+
+    <div class="form-8863-subpart-header">
+      American Opportunity Credit Questions
+    </div>
+
+    <div class="form-8863-question-row">
+      <span class="form-8863-line-num">23</span>
+      <span class="form-8863-question-text">Has the American opportunity credit been claimed for this student for any 4 prior tax years?</span>
+      <div class="form-8863-yes-no">
+        <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'23'|field_id }}" {% if fields|get_item:'23'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-8863-question-row">
+      <span class="form-8863-line-num">24</span>
+      <span class="form-8863-question-text">Was the student enrolled at least half-time for at least one academic period that began or is treated as having begun in {{ year }} at an eligible educational institution in a program leading towards a postsecondary degree, certificate, or other recognized postsecondary educational credential?</span>
+      <div class="form-8863-yes-no">
+        <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'24'|field_id }}" {% if fields|get_item:'24'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-8863-question-row">
+      <span class="form-8863-line-num">25</span>
+      <span class="form-8863-question-text">Did the student complete the first 4 years of postsecondary education before {{ year }}?</span>
+      <div class="form-8863-yes-no">
+        <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'25'|field_id }}" {% if fields|get_item:'25'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-8863-question-row">
+      <span class="form-8863-line-num">26</span>
+      <span class="form-8863-question-text">Was the student convicted, before the end of {{ year }}, of a felony for possession or distribution of a controlled substance?</span>
+      <div class="form-8863-yes-no">
+        <label><input type="checkbox" class="form-8863-checkbox" name="{{ fields|get_item:'26'|field_id }}" {% if fields|get_item:'26'|field_value %}checked{% endif %}> Yes</label>
+      </div>
+    </div>
+
+    <div class="form-8863-subpart-header">
+      Tentative American Opportunity Credit
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">27</span>
+      <span class="form-8863-line-text">Adjusted qualified education expenses (see instructions). <strong>Don't enter more than $4,000</strong></span>
+      <span class="form-8863-line-box">27</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'27'|field_id }}" value="{{ fields|get_item:'27'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">28</span>
+      <span class="form-8863-line-text">Subtract $2,000 from line 27. If zero or less, enter -0-</span>
+      <span class="form-8863-line-box">28</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'28'|field_id }}" value="{{ fields|get_item:'28'|field_value|default:'' }}" {% field_readonly fields|get_item:'28' %}>
+    </div>
+
+    <div class="form-8863-form-line">
+      <span class="form-8863-line-num">29</span>
+      <span class="form-8863-line-text">Multiply line 28 by 25% (0.25)</span>
+      <span class="form-8863-line-box">29</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'29'|field_id }}" value="{{ fields|get_item:'29'|field_value|default:'' }}" {% field_readonly fields|get_item:'29' %}>
+    </div>
+
+    <div class="form-8863-form-line form-8863-total-line">
+      <span class="form-8863-line-num">30</span>
+      <span class="form-8863-line-text">If line 28 is zero, enter the amount from line 27. Otherwise, add $2,000 to the amount on line 29 and enter the result. Skip line 31. Include the total of all amounts from all Parts III, line 30, on Part I, line 1</span>
+      <span class="form-8863-line-box">30</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'30'|field_id }}" value="{{ fields|get_item:'30'|field_value|default:'' }}" {% field_readonly fields|get_item:'30' %}>
+    </div>
+
+    <div class="form-8863-subpart-header">
+      Lifetime Learning Credit
+    </div>
+
+    <div class="form-8863-form-line form-8863-total-line">
+      <span class="form-8863-line-num">31</span>
+      <span class="form-8863-line-text">Adjusted qualified education expenses (see instructions). Include the total of all amounts from all Parts III, line 31, on Part II, line 10</span>
+      <span class="form-8863-line-box">31</span>
+      <input type="text" class="form-8863-line-input irs-line-input" name="{{ fields|get_item:'31'|field_id }}" value="{{ fields|get_item:'31'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-8863-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 25379M
+    </div>
+    <div>
+      <strong>Form 8863 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

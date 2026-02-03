@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Carryover Worksheet - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/carryover_worksheet.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="carryover-container">
+  <div class="carryover-top-header">
+    <div class="carryover-top-left">
+      <div class="carryover-form-label">Carryover Worksheet</div>
+      <div class="carryover-dept-small">For tracking tax items<br>carried to next year</div>
+    </div>
+    <div class="carryover-top-center">
+      <div class="carryover-main-title">Tax Year Carryover Summary</div>
+      <div class="carryover-subtitle">Keep this worksheet for your records</div>
+    </div>
+    <div class="carryover-top-right">
+      <div class="carryover-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="carryover-name-row">
+    <div class="carryover-name-box" style="flex: 3;">
+      <div class="carryover-name-label">Name(s) shown on return</div>
+      <input type="text" class="carryover-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="carryover-name-box">
+      <div class="carryover-name-label">Identifying number</div>
+      <input type="text" class="carryover-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="carryover-section-header">
+    Loss Carryovers
+  </div>
+
+  <div class="carryover-section">
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">1</span>
+      <span class="carryover-line-text">Net Operating Loss (NOL) carryover to next year</span>
+      <span class="carryover-line-box">1</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'1'|field_id }}" value="{{ fields|get_item:'1'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">2</span>
+      <span class="carryover-line-text">NOL year of origin</span>
+      <span class="carryover-line-box">2</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'2'|field_id }}" value="{{ fields|get_item:'2'|field_value|default:'' }}" style="width: 100px;">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">3</span>
+      <span class="carryover-line-text">Capital loss carryover - Short-term <span class="carryover-goto">(Schedule D)</span></span>
+      <span class="carryover-line-box">3</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">4</span>
+      <span class="carryover-line-text">Capital loss carryover - Long-term <span class="carryover-goto">(Schedule D)</span></span>
+      <span class="carryover-line-box">4</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">8</span>
+      <span class="carryover-line-text">Passive activity loss carryover <span class="carryover-goto">(Form 8582)</span></span>
+      <span class="carryover-line-box">8</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">18</span>
+      <span class="carryover-line-text">Suspended losses from partnerships (Schedule K-1)</span>
+      <span class="carryover-line-box">18</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">19</span>
+      <span class="carryover-line-text">Suspended losses from S corporations (Schedule K-1)</span>
+      <span class="carryover-line-box">19</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">20</span>
+      <span class="carryover-line-text">Qualified business income loss carryforward <span class="carryover-goto">(Form 8995)</span></span>
+      <span class="carryover-line-box">20</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">21</span>
+      <span class="carryover-line-text">Excess business loss carryforward (Form 461)</span>
+      <span class="carryover-line-box">21</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="carryover-section-header">
+    Deduction Carryovers
+  </div>
+
+  <div class="carryover-section">
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">5</span>
+      <span class="carryover-line-text">Charitable contribution carryover (50% limit) <span class="carryover-goto">(Schedule A)</span></span>
+      <span class="carryover-line-box">5</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">6</span>
+      <span class="carryover-line-text">Charitable contribution carryover (30% limit - capital gain property) <span class="carryover-goto">(Schedule A)</span></span>
+      <span class="carryover-line-box">6</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">7</span>
+      <span class="carryover-line-text">Charitable contribution carryover (20% limit) <span class="carryover-goto">(Schedule A)</span></span>
+      <span class="carryover-line-box">7</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">10</span>
+      <span class="carryover-line-text">Investment interest expense carryover <span class="carryover-goto">(Form 4952)</span></span>
+      <span class="carryover-line-box">10</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">14</span>
+      <span class="carryover-line-text">Section 179 carryover <span class="carryover-goto">(Form 4562)</span></span>
+      <span class="carryover-line-box">14</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">16</span>
+      <span class="carryover-line-text">Depreciation carryover (listed property) <span class="carryover-goto">(Form 4562)</span></span>
+      <span class="carryover-line-box">16</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">17</span>
+      <span class="carryover-line-text">Home office carryover <span class="carryover-goto">(Form 8829)</span></span>
+      <span class="carryover-line-box">17</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="carryover-section-header">
+    Credit Carryovers
+  </div>
+
+  <div class="carryover-section">
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">9</span>
+      <span class="carryover-line-text">Foreign tax credit carryover <span class="carryover-goto">(Form 1116)</span></span>
+      <span class="carryover-line-box">9</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'9'|field_id }}" value="{{ fields|get_item:'9'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line" style="background-color: #ffffcc; padding: 5px; border-radius: 3px;">
+      <span class="carryover-line-num">11</span>
+      <span class="carryover-line-text"><strong>General business credit carryover</strong> <span class="carryover-goto">(Form 3800)</span></span>
+      <span class="carryover-line-box">11</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% if fields|get_item:'11'|field_readonly %}readonly{% endif %}>
+    </div>
+    <div class="carryover-note">Auto-calculated from Form 3800: Total credits minus allowed credit</div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">12</span>
+      <span class="carryover-line-text">AMT credit carryover <span class="carryover-goto">(Form 8801)</span></span>
+      <span class="carryover-line-box">12</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">13</span>
+      <span class="carryover-line-text">Unallowed at-risk loss carryover <span class="carryover-goto">(Form 6198)</span></span>
+      <span class="carryover-line-box">13</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="carryover-section-header">
+    Other Carryovers
+  </div>
+
+  <div class="carryover-section">
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">15</span>
+      <span class="carryover-line-text">Installment sale income deferred <span class="carryover-goto">(Form 6252)</span></span>
+      <span class="carryover-line-box">15</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">22</span>
+      <span class="carryover-line-text">Other carryover description</span>
+      <span class="carryover-line-box">22</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'22'|field_id }}" value="{{ fields|get_item:'22'|field_value|default:'' }}" style="width: 200px;">
+    </div>
+
+    <div class="carryover-form-line">
+      <span class="carryover-line-num">23</span>
+      <span class="carryover-line-text">Other carryover amount</span>
+      <span class="carryover-line-box">23</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}">
+    </div>
+
+    <div class="carryover-form-line carryover-total-line">
+      <span class="carryover-line-num">24</span>
+      <span class="carryover-line-text"><strong>Total carryovers to next year</strong></span>
+      <span class="carryover-line-box">24</span>
+      <input type="text" class="carryover-line-input irs-line-input" name="{{ fields|get_item:'24'|field_id }}" value="{{ fields|get_item:'24'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="carryover-footer">
+    <div>
+      <strong>Carryover Worksheet</strong>
+    </div>
+    <div>
+      Keep for your records
+    </div>
+    <div>
+      <strong>Tax Year {{ year }}</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

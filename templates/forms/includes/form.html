@@ -1,0 +1,31 @@
+<div class="col-md-10">
+  <form name="form" action="" method="post">
+    {% csrf_token %}
+    {% for field in form.field_set.all|dictsort:"order" %}
+      <div class="row">
+        <div class="col-md-9">
+          <b>{{ field.number }}</b>. {{ field.label }}
+        </div>
+        <div class="col-md-1 left-border bottom-border">
+          <b>{{ field.number }}</b>
+        </div>
+        <div class="col-md-2" style="border-left: 1px solid black">
+          <input id="{{ field.id }}" class="{% if field.ftype == 'checkbox' %}form-check-input{% endif %} user-input"
+                 name="{{ field.id }}" type="{{ field.ftype }}"
+              {% if not field.can_be_modified and not user.is_superuser %} disabled {% endif %}
+              {% if field.ftype == 'checkbox' %}
+                 {% if field.value %}checked{% endif %}
+                 {% else %}value="{{ field.get_value }}"
+              {% endif %}
+          >
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if request.user.is_staff %}
+      <button class="float btn btn-outline-success mb-5 d-print-none" id="submitForm">
+        Save changes
+      </button>
+    {% endif %}
+  </form>
+</div>

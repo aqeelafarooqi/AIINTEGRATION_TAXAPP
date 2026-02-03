@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 2441 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_2441.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+{% with spouse=taxpayer.taxpayer_spouse|default_if_none:user.user_spouse %}
+
+<div class="form-2441-container">
+  <div class="form-2441-top-header">
+    <div class="form-2441-top-left">
+      <div class="form-2441-form-label">Form 2441</div>
+      <div class="form-2441-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-2441-top-center">
+      <div class="form-2441-main-title">Child and Dependent Care Expenses</div>
+      <div class="form-2441-attach-note"><strong>▶ Attach to Form 1040, 1040-SR, or 1040-NR.</strong></div>
+      <div class="form-2441-attach-note"><strong>▶ Go to <a href="https://www.irs.gov/Form2441" target="_blank">www.irs.gov/Form2441</a> for instructions and the latest information.</strong></div>
+    </div>
+    <div class="form-2441-top-right">
+      <div class="form-2441-omb-line">OMB No. 1545-0074</div>
+      <div class="form-2441-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-2441-name-row">
+    <div class="form-2441-name-box" style="flex: 3;">
+      <div class="form-2441-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-2441-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-2441-ssn-box">
+      <div class="form-2441-name-label">Your social security number</div>
+      <input type="text" class="form-2441-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-2441-note">
+    <strong>A.</strong> Check if you meet the eligibility requirements for the credit ▶
+    <input type="checkbox" class="form-2441-checkbox" name="{{ fields|get_item:'A'|field_id }}" {% if fields|get_item:'A'|field_value %}checked{% endif %}>
+    &nbsp;&nbsp;&nbsp;
+    <strong>B.</strong> If you (or your spouse if filing jointly) were a student or disabled, check here ▶
+    <input type="checkbox" class="form-2441-checkbox" name="{{ fields|get_item:'B'|field_id }}" {% if fields|get_item:'B'|field_value %}checked{% endif %}>
+  </div>
+
+  <div class="form-2441-part-header">
+    Part I - Persons or Organizations Who Provided the Care
+  </div>
+
+  <div class="form-2441-section">
+    <div class="form-2441-note">
+      Complete columns (a) through (e) below for each person or organization that provided care. See instructions.
+    </div>
+
+    <table class="form-2441-table">
+      <thead>
+        <tr>
+          <th style="width: 5%;">1</th>
+          <th style="width: 25%;">(a) Care provider's name</th>
+          <th style="width: 30%;">(b) Address (number, street, apt. no., city, state, and ZIP code)</th>
+          <th style="width: 20%;">(c) Identifying number (SSN or EIN)</th>
+          <th style="width: 20%;">(d) Amount paid (see instructions)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td></td>
+          <td><input type="text" name="{{ fields|get_item:'1(a)'|field_id }}" value="{{ fields|get_item:'1(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(b)'|field_id }}" value="{{ fields|get_item:'1(b)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(c)'|field_id }}" value="{{ fields|get_item:'1(c)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(d)'|field_id }}" value="{{ fields|get_item:'1(d)'|field_value|default:'' }}" style="text-align: right;"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="text" name="{{ fields|get_item:'1(a)-2'|field_id }}" value="{{ fields|get_item:'1(a)-2'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(b)-2'|field_id }}" value="{{ fields|get_item:'1(b)-2'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(c)-2'|field_id }}" value="{{ fields|get_item:'1(c)-2'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'1(d)-2'|field_id }}" value="{{ fields|get_item:'1(d)-2'|field_value|default:'' }}" style="text-align: right;"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="form-2441-note">
+      Did you receive dependent care benefits? ▶ <input type="checkbox" class="form-2441-checkbox" name="{{ fields|get_item:'2'|field_id }}" {% if fields|get_item:'2'|field_value %}checked{% endif %}> If Yes, complete Part III on page 2.
+    </div>
+  </div>
+
+  <div class="form-2441-part-header">
+    Part II - Credit for Child and Dependent Care Expenses
+  </div>
+
+  <div class="form-2441-section">
+    <div class="form-2441-subheader">
+      Information about your qualifying person(s)
+    </div>
+
+    <table class="form-2441-table">
+      <thead>
+        <tr>
+          <th style="width: 5%;">2</th>
+          <th style="width: 35%;">(a) Qualifying person's name</th>
+          <th style="width: 25%;">(b) Qualifying person's SSN</th>
+          <th style="width: 35%;">(c) Qualified expenses you incurred and paid in {{ year }} for this person</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td></td>
+          <td><input type="text" name="{{ fields|get_item:'2(a)'|field_id }}" value="{{ fields|get_item:'2(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'2(b)'|field_id }}" value="{{ fields|get_item:'2(b)'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'2(c)'|field_id }}" value="{{ fields|get_item:'2(c)'|field_value|default:'' }}" style="text-align: right;"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="text" name="{{ fields|get_item:'2(a)-2'|field_id }}" value="{{ fields|get_item:'2(a)-2'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'2(b)-2'|field_id }}" value="{{ fields|get_item:'2(b)-2'|field_value|default:'' }}"></td>
+          <td><input type="text" name="{{ fields|get_item:'2(c)-2'|field_id }}" value="{{ fields|get_item:'2(c)-2'|field_value|default:'' }}" style="text-align: right;"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">3</span>
+      <span class="form-2441-line-text">Add the amounts in column (c) of line 2. <strong>Don't enter more than $3,000 for one qualifying person or $6,000 for two or more persons.</strong> If you completed Part III, enter the amount from line 31</span>
+      <span class="form-2441-line-box">3</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'3'|field_id }}" value="{{ fields|get_item:'3'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">4</span>
+      <span class="form-2441-line-text">Enter <strong>your</strong> earned income. See instructions</span>
+      <span class="form-2441-line-box">4</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'4'|field_id }}" value="{{ fields|get_item:'4'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">5</span>
+      <span class="form-2441-line-text">If married filing jointly, enter <strong>your spouse's</strong> earned income (if you or your spouse was a student or was disabled, see the instructions); all others, enter the amount from line 4</span>
+      <span class="form-2441-line-box">5</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'5'|field_id }}" value="{{ fields|get_item:'5'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">6</span>
+      <span class="form-2441-line-text">Enter the <strong>smallest</strong> of line 3, 4, or 5</span>
+      <span class="form-2441-line-box">6</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'6'|field_id }}" value="{{ fields|get_item:'6'|field_value|default:'' }}" {% field_readonly fields|get_item:'6' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">7</span>
+      <span class="form-2441-line-text">Enter the amount from Form 1040, 1040-SR, or 1040-NR, line 11</span>
+      <span class="form-2441-line-box">7</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'7'|field_id }}" value="{{ fields|get_item:'7'|field_value|default:'' }}" {% field_readonly fields|get_item:'7' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">8</span>
+      <span class="form-2441-line-text">Enter on line 8 the decimal amount shown below that applies to the amount on line 7</span>
+      <span class="form-2441-line-box">8</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'8'|field_id }}" value="{{ fields|get_item:'8'|field_value|default:'' }}" {% field_readonly fields|get_item:'8' %}>
+    </div>
+
+    <div class="form-2441-note">
+      <strong>Decimal Table:</strong> If AGI is $0-$15,000: .35 | $15,001-$17,000: .34 | $17,001-$19,000: .33 | ... | Over $43,000: .20
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">9a</span>
+      <span class="form-2441-line-text">Multiply line 6 by the decimal amount on line 8. If you paid 2023 expenses in 2024, see the instructions</span>
+      <span class="form-2441-line-box">9a</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'9a'|field_id }}" value="{{ fields|get_item:'9a'|field_value|default:'' }}" {% field_readonly fields|get_item:'9a' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">9b</span>
+      <span class="form-2441-line-text">Enter the amount of the credit from the Credit for Prior Year Expenses Worksheet in the instructions</span>
+      <span class="form-2441-line-box">9b</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'9b'|field_id }}" value="{{ fields|get_item:'9b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">9c</span>
+      <span class="form-2441-line-text">Add lines 9a and 9b. See instructions for the amount to enter</span>
+      <span class="form-2441-line-box">9c</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'9c'|field_id }}" value="{{ fields|get_item:'9c'|field_value|default:'' }}" {% field_readonly fields|get_item:'9c' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">10</span>
+      <span class="form-2441-line-text">Enter the amount from the Credit Limit Worksheet in the instructions</span>
+      <span class="form-2441-line-box">10</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'10'|field_id }}" value="{{ fields|get_item:'10'|field_value|default:'' }}" {% field_readonly fields|get_item:'10' %}>
+    </div>
+
+    <div class="form-2441-form-line form-2441-total-line">
+      <span class="form-2441-line-num">11</span>
+      <span class="form-2441-line-text"><strong>Credit for child and dependent care expenses.</strong> Enter the <strong>smaller</strong> of line 9c or line 10 here and on Schedule 3 (Form 1040), line 2</span>
+      <span class="form-2441-line-box">11</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'11'|field_id }}" value="{{ fields|get_item:'11'|field_value|default:'' }}" {% field_readonly fields|get_item:'11' %}>
+    </div>
+  </div>
+
+  <div class="form-2441-part-header">
+    Part III - Dependent Care Benefits
+  </div>
+
+  <div class="form-2441-section">
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">12</span>
+      <span class="form-2441-line-text">Enter the total amount of <strong>dependent care benefits</strong> you received in {{ year }}. Amounts you received as an employee should be shown in box 10 of your Form(s) W-2. <strong>Don't</strong> include amounts reported as wages in box 1 of Form(s) W-2</span>
+      <span class="form-2441-line-box">12</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'12'|field_id }}" value="{{ fields|get_item:'12'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">13</span>
+      <span class="form-2441-line-text">Enter the amount, if any, you carried over from 2023 and used in {{ year }} during the grace period. See instructions</span>
+      <span class="form-2441-line-box">13</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'13'|field_id }}" value="{{ fields|get_item:'13'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">14</span>
+      <span class="form-2441-line-text">Enter the amount, if any, you forfeited or carried forward to 2025. See instructions</span>
+      <span class="form-2441-line-box">14</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'14'|field_id }}" value="{{ fields|get_item:'14'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">15</span>
+      <span class="form-2441-line-text">Combine lines 12 through 14. See instructions</span>
+      <span class="form-2441-line-box">15</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'15'|field_id }}" value="{{ fields|get_item:'15'|field_value|default:'' }}" {% field_readonly fields|get_item:'15' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">16</span>
+      <span class="form-2441-line-text">Enter the total amount of <strong>qualified expenses</strong> incurred in {{ year }} for the care of the qualifying person(s)</span>
+      <span class="form-2441-line-box">16</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'16'|field_id }}" value="{{ fields|get_item:'16'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">17</span>
+      <span class="form-2441-line-text">Enter the <strong>smaller</strong> of line 15 or 16</span>
+      <span class="form-2441-line-box">17</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'17'|field_id }}" value="{{ fields|get_item:'17'|field_value|default:'' }}" {% field_readonly fields|get_item:'17' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">18</span>
+      <span class="form-2441-line-text">Enter <strong>your</strong> earned income. See instructions</span>
+      <span class="form-2441-line-box">18</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'18'|field_id }}" value="{{ fields|get_item:'18'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">19</span>
+      <span class="form-2441-line-text">Enter the amount shown below that applies to you:
+        • If married filing jointly, enter your <strong>spouse's</strong> earned income
+        • If married filing separately, see instructions
+        • All others, enter the amount from line 18</span>
+      <span class="form-2441-line-box">19</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'19'|field_id }}" value="{{ fields|get_item:'19'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">20</span>
+      <span class="form-2441-line-text">Enter the <strong>smallest</strong> of line 17, 18, or 19</span>
+      <span class="form-2441-line-box">20</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'20'|field_id }}" value="{{ fields|get_item:'20'|field_value|default:'' }}" {% field_readonly fields|get_item:'20' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">21</span>
+      <span class="form-2441-line-text">Enter $5,000 ($2,500 if married filing separately and you were required to enter your spouse's earned income on line 19)</span>
+      <span class="form-2441-line-box">21</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'21'|field_id }}" value="{{ fields|get_item:'21'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">22</span>
+      <span class="form-2441-line-text">Is any amount on line 12 from your sole proprietorship or partnership? If "Yes," enter the amount here. If "No," enter -0-</span>
+      <span class="form-2441-line-box">22</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'22'|field_id }}" value="{{ fields|get_item:'22'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">23</span>
+      <span class="form-2441-line-text">Subtract line 22 from line 15</span>
+      <span class="form-2441-line-box">23</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'23'|field_id }}" value="{{ fields|get_item:'23'|field_value|default:'' }}" {% field_readonly fields|get_item:'23' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">24</span>
+      <span class="form-2441-line-text"><strong>Deductible benefits.</strong> Enter the <strong>smallest</strong> of line 20, 21, or 22. Also, include this amount on the appropriate line(s) of your return. See instructions</span>
+      <span class="form-2441-line-box">24</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'24'|field_id }}" value="{{ fields|get_item:'24'|field_value|default:'' }}" {% field_readonly fields|get_item:'24' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">25</span>
+      <span class="form-2441-line-text"><strong>Excluded benefits.</strong> If you checked "No" on line 22, enter the <strong>smaller</strong> of line 20 or 21. Otherwise, subtract line 24 from the <strong>smaller</strong> of line 20 or line 21</span>
+      <span class="form-2441-line-box">25</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'25'|field_id }}" value="{{ fields|get_item:'25'|field_value|default:'' }}" {% field_readonly fields|get_item:'25' %}>
+    </div>
+
+    <div class="form-2441-form-line form-2441-total-line">
+      <span class="form-2441-line-num">26</span>
+      <span class="form-2441-line-text"><strong>Taxable benefits.</strong> Subtract line 25 from line 23. If zero or less, enter -0-. Also, include this amount on Form 1040 or 1040-SR, line 1h; or Form 1040-NR, line 1h. On the dotted line next to Form 1040 or 1040-SR, line 1h; or Form 1040-NR, line 1h, enter "DCB"</span>
+      <span class="form-2441-line-box">26</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'26'|field_id }}" value="{{ fields|get_item:'26'|field_value|default:'' }}" {% field_readonly fields|get_item:'26' %}>
+    </div>
+  </div>
+
+  <div class="form-2441-subheader">
+    To claim the child and dependent care credit, complete lines 27 through 31 below
+  </div>
+
+  <div class="form-2441-section">
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">27</span>
+      <span class="form-2441-line-text">Enter $3,000 ($6,000 if two or more qualifying persons)</span>
+      <span class="form-2441-line-box">27</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'27'|field_id }}" value="{{ fields|get_item:'27'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">28</span>
+      <span class="form-2441-line-text">Add lines 24 and 25</span>
+      <span class="form-2441-line-box">28</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'28'|field_id }}" value="{{ fields|get_item:'28'|field_value|default:'' }}" {% field_readonly fields|get_item:'28' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">29</span>
+      <span class="form-2441-line-text">Subtract line 28 from line 27. If zero or less, <strong>stop</strong>. You can't take the credit. <strong>Exception.</strong> If you paid 2023 expenses in {{ year }}, see the instructions for line 9b</span>
+      <span class="form-2441-line-box">29</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'29'|field_id }}" value="{{ fields|get_item:'29'|field_value|default:'' }}" {% field_readonly fields|get_item:'29' %}>
+    </div>
+
+    <div class="form-2441-form-line">
+      <span class="form-2441-line-num">30</span>
+      <span class="form-2441-line-text">Complete line 2 on the front of this form. <strong>Don't</strong> include in column (c) any benefits shown on line 28 above. Then, add the amounts in column (c) and enter the total here</span>
+      <span class="form-2441-line-box">30</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'30'|field_id }}" value="{{ fields|get_item:'30'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-2441-form-line form-2441-total-line">
+      <span class="form-2441-line-num">31</span>
+      <span class="form-2441-line-text">Enter the <strong>smaller</strong> of line 29 or 30. Also, enter this amount on line 3 on the front of this form and complete lines 4 through 11</span>
+      <span class="form-2441-line-box">31</span>
+      <input type="text" class="form-2441-line-input irs-line-input" name="{{ fields|get_item:'31'|field_id }}" value="{{ fields|get_item:'31'|field_value|default:'' }}" {% field_readonly fields|get_item:'31' %}>
+    </div>
+  </div>
+
+  <div class="form-2441-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see your tax return instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 11862M
+    </div>
+    <div>
+      <strong>Form 2441 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endwith %}
+{% endblock content %}

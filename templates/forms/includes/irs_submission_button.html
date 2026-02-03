@@ -1,0 +1,87 @@
+{% load static %}
+
+{% if user.is_superuser or user.is_preparer %}
+<div class="irs-submission-section mt-4 mb-4 p-3" style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+    <h5 class="mb-3">IRS Electronic Filing</h5>
+
+    <button type="button"
+            class="btn btn-primary submit-to-irs"
+            id="submit-to-irs-btn"
+            data-form-id="{{ form.id }}"
+            data-year="{{ year }}"
+            data-taxpayer-id="{% if taxpayer %}{{ taxpayer.id }}{% endif %}">
+        <i class="fa fa-cloud-upload"></i> Submit to IRS
+    </button>
+
+    <div id="submission-status" class="mt-3"></div>
+</div>
+
+<script>
+document.getElementById('submit-to-irs-btn').addEventListener('click', function() {
+    const btn = this;
+    const formId = this.dataset.formId;
+    const year = this.dataset.year;
+    const taxpayerId = this.dataset.taxpayerId;
+
+    if (!taxpayerId) {
+        document.getElementById('submission-status').innerHTML =
+            '<div class="alert alert-danger">Error: Taxpayer ID not found</div>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Submitting...';
+
+    fetch(`/api/v1/taxpayer/${taxpayerId}/submit-irs/${year}/${formId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.submission_id) {
+            document.getElementById('submission-status').innerHTML =
+                `<div class="alert alert-success">
+                    <strong>Successfully submitted to IRS!</strong><br>
+                    <strong>Submission ID:</strong> ${data.submission_id}<br>
+                    <strong>Status:</strong> ${data.status}<br>
+                    <strong>Message ID:</strong> ${data.message_id}<br>
+                    <strong>Environment:</strong> ${data.environment}
+                </div>`;
+        } else {
+            document.getElementById('submission-status').innerHTML =
+                `<div class="alert alert-danger">
+                    <strong>Error:</strong> ${data.error}
+                </div>`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('submission-status').innerHTML =
+            `<div class="alert alert-danger">
+                <strong>Error:</strong> ${error.message || 'Failed to submit to IRS'}
+            </div>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-cloud-upload"></i> Submit to IRS';
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endif %}

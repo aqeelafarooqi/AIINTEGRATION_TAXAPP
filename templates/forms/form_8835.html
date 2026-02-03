@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+{% block title %}Form 8835 - {{ form.name }}{% endblock title %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/irs_form_common.css' %}">
+<link rel="stylesheet" href="{% static 'css/form_8835.css' %}">
+{% endblock extra_head %}
+
+{% block header %}
+  {% if request.user.is_superuser %}
+    As superuser you can <a href="{% url "edit_form_fields" form.id %}"> <i class="fa fa-edit"></i> edit master form</a>
+  {% endif %}
+{% endblock header %}
+
+{% block content %}
+{% form_fields_map form as fields %}
+{% with taxpayer_obj=taxpayer|default:user %}
+{% if taxpayer %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/{{ taxpayer.id }}/render/form/{{ year }}/{{ form.id }}/">
+{% else %}
+  <form name="form" action="{% url 'render_form' year=year pk=form.id %}" method="post" data-api-action="/api/v1/taxpayer/self/render/form/{{ year }}/{{ form.id }}/">
+{% endif %}
+{% csrf_token %}
+
+<div class="form-8835-container">
+  <div class="form-8835-top-header">
+    <div class="form-8835-top-left">
+      <div class="form-8835-form-label">Form 8835</div>
+      <div class="form-8835-dept-small">Department of the Treasury<br>Internal Revenue Service</div>
+    </div>
+    <div class="form-8835-top-center">
+      <div class="form-8835-main-title">Renewable Electricity, Refined Coal, and Indian Coal Production Credit</div>
+      <div class="form-8835-attach-note"><strong>▶ Attach to your tax return.</strong></div>
+      <div class="form-8835-attach-note">▶ Go to <a href="https://www.irs.gov/Form8835" target="_blank">www.irs.gov/Form8835</a> for instructions and the latest information.</div>
+    </div>
+    <div class="form-8835-top-right">
+      <div class="form-8835-omb-line">OMB No. 1545-1362</div>
+      <div class="form-8835-year-large">{{ year }}</div>
+    </div>
+  </div>
+
+  <div class="form-8835-name-row">
+    <div class="form-8835-name-box" style="flex: 3;">
+      <div class="form-8835-name-label">Name(s) shown on return</div>
+      <input type="text" class="form-8835-name-input" value="{{ taxpayer_obj.first_name|default:'' }} {{ taxpayer_obj.last_name|default:'' }}" readonly>
+    </div>
+    <div class="form-8835-name-box">
+      <div class="form-8835-name-label">Identifying number</div>
+      <input type="text" class="form-8835-name-input" value="{{ taxpayer_obj.ssn|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8835-part-header">
+    Part I — Facility Information
+  </div>
+
+  <div class="form-8835-section">
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">1</span>
+      <span class="form-8835-line-text">IRS-issued registration number for the facility</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 1'|field_id }}" value="{{ fields|get_item:'Part I 1'|field_value|default:'' }}" style="width: 200px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">2a</span>
+      <span class="form-8835-line-text">Type of facility</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 2a'|field_id }}" value="{{ fields|get_item:'Part I 2a'|field_value|default:'' }}" style="width: 200px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">2b(i)</span>
+      <span class="form-8835-line-text">If different than filer, enter owner's person name</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 2b (i)'|field_id }}" value="{{ fields|get_item:'Part I 2b (i)'|field_value|default:'' }}" style="width: 200px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">2b(ii)</span>
+      <span class="form-8835-line-text">If different than filer, enter owner's SSN or EIN</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 2b (ii)'|field_id }}" value="{{ fields|get_item:'Part I 2b (ii)'|field_value|default:'' }}" style="width: 150px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">3a</span>
+      <span class="form-8835-line-text">Address of facility</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 3a'|field_id }}" value="{{ fields|get_item:'Part I 3a'|field_value|default:'' }}" style="width: 300px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">3b(i)</span>
+      <span class="form-8835-line-text">Location coordinates - Latitude</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 3b (i)'|field_id }}" value="{{ fields|get_item:'Part I 3b (i)'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">3b(ii)</span>
+      <span class="form-8835-line-text">Location coordinates - Longitude</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 3b (ii)'|field_id }}" value="{{ fields|get_item:'Part I 3b (ii)'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">4</span>
+      <span class="form-8835-line-text">Date construction began on the facility</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 4'|field_id }}" value="{{ fields|get_item:'Part I 4'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">5</span>
+      <span class="form-8835-line-text">Date the facility was placed in service</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 5'|field_id }}" value="{{ fields|get_item:'Part I 5'|field_value|default:'' }}" style="width: 120px;">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">6</span>
+      <span class="form-8835-line-text">Is this facility an expansion of an existing facility?</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 6'|field_id }}" {% if fields|get_item:'Part I 6'|field_value %}checked{% endif %}> Yes</label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">8a</span>
+      <span class="form-8835-line-text">The facility's maximum net output is less than 1 megawatt</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 8a'|field_id }}" {% if fields|get_item:'Part I 8a'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">8b</span>
+      <span class="form-8835-line-text">The facility's construction began before specified date</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 8b'|field_id }}" {% if fields|get_item:'Part I 8b'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">8c</span>
+      <span class="form-8835-line-text">The facility meets the prevailing wage and apprenticeship requirements</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 8c'|field_id }}" {% if fields|get_item:'Part I 8c'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">8d</span>
+      <span class="form-8835-line-text">The facility does not meet the qualified facility requirements</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 8d'|field_id }}" {% if fields|get_item:'Part I 8d'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">9</span>
+      <span class="form-8835-line-text">Does the property qualify for the domestic bonus credit?</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 9'|field_id }}" {% if fields|get_item:'Part I 9'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">10</span>
+      <span class="form-8835-line-text">Does the project qualify for an energy community bonus credit?</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 10a-b'|field_id }}" {% if fields|get_item:'Part I 10a-b'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">11a</span>
+      <span class="form-8835-line-text">Direct current (dc) solar energy property or facility</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 11a'|field_id }}" {% if fields|get_item:'Part I 11a'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">11b</span>
+      <span class="form-8835-line-text">Nameplate capacity direct current (dc) in kW</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 11b'|field_id }}" value="{{ fields|get_item:'Part I 11b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">12a</span>
+      <span class="form-8835-line-text">Alternating current (ac) Solar energy property or facility</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 12a'|field_id }}" {% if fields|get_item:'Part I 12a'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">12b</span>
+      <span class="form-8835-line-text">Alternating current (ac) Wind energy property or facility</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 12b'|field_id }}" {% if fields|get_item:'Part I 12b'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">12c</span>
+      <span class="form-8835-line-text">Alternating current (ac) Other energy property or facility</span>
+      <label><input type="checkbox" class="form-8835-checkbox" name="{{ fields|get_item:'Part I 12c'|field_id }}" {% if fields|get_item:'Part I 12c'|field_value %}checked{% endif %}></label>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">12d</span>
+      <span class="form-8835-line-text">Nameplate capacity, alternating current (ac) in kW</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part I 12d'|field_id }}" value="{{ fields|get_item:'Part I 12d'|field_value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="form-8835-part-header">
+    Part II — Credit Calculation
+  </div>
+
+  <div class="form-8835-section">
+    <p style="font-size: 8pt; margin-bottom: 10px;"><strong>Line 1:</strong> Kilowatt-hours produced and sold (or used)</p>
+
+    <table class="form-8835-energy-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th style="width: 200px;">Energy Type</th>
+          <th style="width: 150px;">(a) Kilowatt-hours</th>
+          <th style="width: 150px;">(c) Credit Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1a</td>
+          <td class="energy-type">Wind</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1a(a)'|field_id }}" value="{{ fields|get_item:'Part II 1a(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1a(c)'|field_id }}" value="{{ fields|get_item:'Part II 1a(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1b</td>
+          <td class="energy-type">Closed loop biomass</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1b(a)'|field_id }}" value="{{ fields|get_item:'Part II 1b(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1b(c)'|field_id }}" value="{{ fields|get_item:'Part II 1b(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1c</td>
+          <td class="energy-type">Geothermal</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1c(a)'|field_id }}" value="{{ fields|get_item:'Part II 1c(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1c(c)'|field_id }}" value="{{ fields|get_item:'Part II 1c(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1d</td>
+          <td class="energy-type">Solar</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1d(a)'|field_id }}" value="{{ fields|get_item:'Part II 1d(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1d(c)'|field_id }}" value="{{ fields|get_item:'Part II 1d(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1e</td>
+          <td class="energy-type">Off-Shore Wind Facility</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1e(a)'|field_id }}" value="{{ fields|get_item:'Part II 1e(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1e(c)'|field_id }}" value="{{ fields|get_item:'Part II 1e(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1f</td>
+          <td class="energy-type">Open loop biomass</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1f(a)'|field_id }}" value="{{ fields|get_item:'Part II 1f(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1f(c)'|field_id }}" value="{{ fields|get_item:'Part II 1f(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1g</td>
+          <td class="energy-type">Landfill gas</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1g(a)'|field_id }}" value="{{ fields|get_item:'Part II 1g(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1g(c)'|field_id }}" value="{{ fields|get_item:'Part II 1g(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1h</td>
+          <td class="energy-type">Trash</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1h(a)'|field_id }}" value="{{ fields|get_item:'Part II 1h(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1h(c)'|field_id }}" value="{{ fields|get_item:'Part II 1h(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1i</td>
+          <td class="energy-type">Hydropower</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1i(a)'|field_id }}" value="{{ fields|get_item:'Part II 1i(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1i(c)'|field_id }}" value="{{ fields|get_item:'Part II 1i(c)'|field_value|default:'' }}"></td>
+        </tr>
+        <tr>
+          <td>1j</td>
+          <td class="energy-type">Marine and hydrokinetic renewables</td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1j(a)'|field_id }}" value="{{ fields|get_item:'Part II 1j(a)'|field_value|default:'' }}"></td>
+          <td><input type="text" class="irs-line-input" name="{{ fields|get_item:'Part II 1j(c)'|field_id }}" value="{{ fields|get_item:'Part II 1j(c)'|field_value|default:'' }}"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="form-8835-form-line form-8835-total-line">
+      <span class="form-8835-line-num">2</span>
+      <span class="form-8835-line-text"><strong>Total.</strong> Add column (c) amounts from lines 1a through 1j</span>
+      <span class="form-8835-line-box">2</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 2'|field_id }}" value="{{ fields|get_item:'Part II 2'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">4</span>
+      <span class="form-8835-line-text">Credit before reduction</span>
+      <span class="form-8835-line-box">4</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 4'|field_id }}" value="{{ fields|get_item:'Part II 4'|field_value|default:'' }}" {% if fields|get_item:'Part II 4'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">5a</span>
+      <span class="form-8835-line-text">Bond proceeds percentage (divide bond proceeds by capital account additions)</span>
+      <span class="form-8835-line-box">5a</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 5a'|field_id }}" value="{{ fields|get_item:'Part II 5a'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">5b</span>
+      <span class="form-8835-line-text">Multiply specified lines</span>
+      <span class="form-8835-line-box">5b</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 5b'|field_id }}" value="{{ fields|get_item:'Part II 5b'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">5c</span>
+      <span class="form-8835-line-text">Multiply specified lines by specified percent</span>
+      <span class="form-8835-line-box">5c</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 5c'|field_id }}" value="{{ fields|get_item:'Part II 5c'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">5d</span>
+      <span class="form-8835-line-text">Enter the smaller of line 5b or 5c</span>
+      <span class="form-8835-line-box">5d</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 5d'|field_id }}" value="{{ fields|get_item:'Part II 5d'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">6</span>
+      <span class="form-8835-line-text">Subtract line 5d from line 4</span>
+      <span class="form-8835-line-box">6</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 6'|field_id }}" value="{{ fields|get_item:'Part II 6'|field_value|default:'' }}" {% if fields|get_item:'Part II 6'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">7g</span>
+      <span class="form-8835-line-text">Wind facility construction phase out credit amount</span>
+      <span class="form-8835-line-box">7g</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 7g'|field_id }}" value="{{ fields|get_item:'Part II 7g'|field_value|default:'' }}" {% if fields|get_item:'Part II 7g'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">8</span>
+      <span class="form-8835-line-text">Net wind facility percentage amount. Subtract line 7g from line 6</span>
+      <span class="form-8835-line-box">8</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 8'|field_id }}" value="{{ fields|get_item:'Part II 8'|field_value|default:'' }}" {% if fields|get_item:'Part II 8'|field_readonly %}readonly{% endif %}>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">9</span>
+      <span class="form-8835-line-text">Increased credit amount for qualified facilities</span>
+      <span class="form-8835-line-box">9</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 9'|field_id }}" value="{{ fields|get_item:'Part II 9'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">10</span>
+      <span class="form-8835-line-text">Domestic content bonus credit</span>
+      <span class="form-8835-line-box">10</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 10'|field_id }}" value="{{ fields|get_item:'Part II 10'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">11</span>
+      <span class="form-8835-line-text">Energy community bonus credit</span>
+      <span class="form-8835-line-box">11</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 11'|field_id }}" value="{{ fields|get_item:'Part II 11'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line form-8835-total-line">
+      <span class="form-8835-line-num">12</span>
+      <span class="form-8835-line-text"><strong>Add lines 8, 9, 10, and 11</strong></span>
+      <span class="form-8835-line-box">12</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 12'|field_id }}" value="{{ fields|get_item:'Part II 12'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">13</span>
+      <span class="form-8835-line-text">Elective payment election amount</span>
+      <span class="form-8835-line-box">13</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 13'|field_id }}" value="{{ fields|get_item:'Part II 13'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">14</span>
+      <span class="form-8835-line-text">Renewable electricity production credit from partnerships, S corporations, cooperatives, estates, and trusts</span>
+      <span class="form-8835-line-box">14</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 14'|field_id }}" value="{{ fields|get_item:'Part II 14'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line form-8835-total-line">
+      <span class="form-8835-line-num">15</span>
+      <span class="form-8835-line-text"><strong>Total allowed tax credit.</strong> Add lines 12 through 14 (subtract line 13)</span>
+      <span class="form-8835-line-box">15</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 15'|field_id }}" value="{{ fields|get_item:'Part II 15'|field_value|default:'' }}" readonly>
+    </div>
+
+    <div class="form-8835-form-line">
+      <span class="form-8835-line-num">16</span>
+      <span class="form-8835-line-text">Amount allocated to patrons of the cooperatives or beneficiaries</span>
+      <span class="form-8835-line-box">16</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 16'|field_id }}" value="{{ fields|get_item:'Part II 16'|field_value|default:'' }}">
+    </div>
+
+    <div class="form-8835-form-line form-8835-total-line">
+      <span class="form-8835-line-num">17</span>
+      <span class="form-8835-line-text"><strong>Estates, trusts and cooperatives credit.</strong> Subtract line 16 from line 15. Report on Form 3800</span>
+      <span class="form-8835-line-box">17</span>
+      <input type="text" class="form-8835-line-input irs-line-input" name="{{ fields|get_item:'Part II 17'|field_id }}" value="{{ fields|get_item:'Part II 17'|field_value|default:'' }}" readonly>
+    </div>
+  </div>
+
+  <div class="form-8835-footer">
+    <div>
+      <strong>For Paperwork Reduction Act Notice, see separate instructions.</strong>
+    </div>
+    <div>
+      Cat. No. 14954R
+    </div>
+    <div>
+      <strong>Form 8835 ({{ year }})</strong>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-outline-success mb-5 d-print-none" id="submitForm" type="submit" style="margin: 20px;">
+  Save changes
+</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitForm');
+
+    if (form) {
+      const isInIframe = window.self !== window.top;
+
+      form.addEventListener('submit', function(event) {
+        if (!isInIframe) {
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving...';
+          }
+          return true;
+        }
+
+        event.preventDefault();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Saving...';
+        }
+
+        const formData = new FormData(event.target);
+        const formProps = Object.fromEntries(formData);
+        delete formProps['csrfmiddlewaretoken'];
+
+        let parentOrigin = window.location.origin.includes('localhost') ? 'http://localhost:5100' : 'https://lowercoststaxes.com';
+
+        try {
+          const apiAction = event.target.dataset.apiAction || event.target.action;
+          window.parent.postMessage({
+            type: 'formSubmit',
+            formData: formProps,
+            url: apiAction
+          }, parentOrigin);
+
+          setTimeout(() => {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Save changes';
+            }
+          }, 1000);
+        } catch (error) {
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save changes';
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endwith %}
+{% endblock content %}

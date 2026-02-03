@@ -1,0 +1,85 @@
+.body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11px;
+    line-height: 1.2;
+    color: black;
+}
+
+.verticaltext {
+    width: 1px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.right-border {
+    border-right: 1px solid black;
+}
+
+.left-border {
+    border-left: 1px solid black;
+}
+
+.v-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.form-bg {
+    background-color: #f8f8f8;
+}
+
+.weight-900 {
+    font-weight: 900;
+}
+
+.weight-700 {
+    font-weight: 700;
+}
+.weight-500 {
+    font-weight: 500;
+}
+
+.shallow {
+    -webkit-text-fill-color: white;
+    -webkit-text-stroke-color: #000;
+    -webkit-text-stroke-width: 2px;
+}
+
+.bottom-border {
+    border-bottom: 1px solid black
+}
+.top-border {
+    border-top: 1px solid black
+}
+
+.user-input {
+    font-weight: bold;
+    color: red !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 11px !important;
+}
+
+body, p, label, span, div {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 11px;
+    line-height: 1.2;
+    color: black;
+}
+
+.user-input-on-pdf,
+input[type="text"],
+input[type="number"],
+input[type="email"] {
+    color: red !important;
+    font-weight: bold !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 11px !important;
+}
+
+.print-value {
+    color: red !important;
+    font-weight: bold !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 11px !important;
+}
